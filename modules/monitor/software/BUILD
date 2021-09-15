@@ -1,0 +1,73 @@
+load("//tools:cpplint.bzl", "cpplint")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "process_monitor",
+    srcs = ["process_monitor.cc"],
+    hdrs = ["process_monitor.h"],
+    deps = [
+        ":summary_monitor",
+        "//external:gflags",
+        "//modules/dreamview/proto:hmi_mode_proto",
+        "//modules/monitor/common:monitor_manager",
+        "//modules/monitor/common:recurrent_runner",
+    ],
+)
+
+cc_library(
+    name = "channel_monitor",
+    srcs = ["channel_monitor.cc"],
+    hdrs = ["channel_monitor.h"],
+    deps = [
+        ":summary_monitor",
+        "//modules/common/util:string_util",
+        "//modules/control/proto:control_proto",
+        "//modules/dreamview/proto:hmi_mode_proto",
+        "//modules/drivers/proto:sensor_proto",
+        "//modules/localization/proto:localization_proto",
+        "//modules/map/relative_map/proto:navigation_proto",
+        "//modules/monitor/common:monitor_manager",
+        "//modules/monitor/common:recurrent_runner",
+        "//modules/perception/proto:perception_proto",
+        "//modules/planning/proto:planning_proto",
+        "//modules/prediction/proto:prediction_proto",
+    ],
+)
+
+cc_library(
+    name = "localization_monitor",
+    srcs = ["localization_monitor.cc"],
+    hdrs = ["localization_monitor.h"],
+    deps = [
+        ":summary_monitor",
+        "//modules/common/adapters:adapter_gflags",
+        "//modules/localization/proto:localization_proto",
+        "//modules/monitor/common:monitor_manager",
+        "//modules/monitor/common:recurrent_runner",
+    ],
+)
+
+cc_library(
+    name = "functional_safety_monitor",
+    srcs = ["functional_safety_monitor.cc"],
+    hdrs = ["functional_safety_monitor.h"],
+    deps = [
+        "//modules/monitor/common:monitor_manager",
+        "//modules/monitor/common:recurrent_runner",
+    ],
+)
+
+cc_library(
+    name = "summary_monitor",
+    srcs = ["summary_monitor.cc"],
+    hdrs = ["summary_monitor.h"],
+    deps = [
+        "//modules/common/adapters:adapter_gflags",
+        "//modules/common/util:string_util",
+        "//modules/monitor/common:monitor_manager",
+        "//modules/monitor/common:recurrent_runner",
+    ],
+)
+
+cpplint()
