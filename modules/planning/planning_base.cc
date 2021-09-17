@@ -35,8 +35,8 @@ using apollo::planning_internal::STGraphDebug;
 PlanningBase::~PlanningBase() {}
 
 apollo::common::Status PlanningBase::Init(const PlanningConfig& config) {
-        PlanningContext::Instance()->Init();
-        TaskFactory::Init(config);
+        PlanningContext::Instance()->Init();   //@zyk:TODO:这个Instance()的用法
+        TaskFactory::Init(config);   
         return Status::OK();
 }
 

@@ -23,28 +23,25 @@
 #include <memory>
 #include <unordered_map>
 
-#include "modules/planning/proto/planning_config.pb.h"
-
 #include "modules/common/util/factory.h"
+#include "modules/planning/proto/planning_config.pb.h"
 #include "modules/planning/tasks/task.h"
 
 namespace apollo {
 namespace planning {
 
 class TaskFactory {
- public:
-  static void Init(const PlanningConfig &config);
-  static std::unique_ptr<Task> CreateTask(const TaskConfig &task_config);
+    public:
+        static void Init(const PlanningConfig &config);
+        static std::unique_ptr<Task> CreateTask(const TaskConfig &task_config);
 
- private:
-  static apollo::common::util::Factory<
-      TaskConfig::TaskType, Task, Task *(*)(const TaskConfig &config),
-      std::unordered_map<TaskConfig::TaskType,
-                         Task *(*)(const TaskConfig &config), std::hash<int>>>
-      task_factory_;
-  static std::unordered_map<TaskConfig::TaskType, TaskConfig, std::hash<int>>
-      default_task_configs_;
+    private:
+        static apollo::common::util::Factory<
+                TaskConfig::TaskType, Task, Task *(*)(const TaskConfig &config),
+                std::unordered_map<TaskConfig::TaskType, Task *(*)(const TaskConfig &config), std::hash<int>>>
+                task_factory_;
+        static std::unordered_map<TaskConfig::TaskType, TaskConfig, std::hash<int>> default_task_configs_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
