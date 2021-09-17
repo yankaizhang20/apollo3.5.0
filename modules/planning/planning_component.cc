@@ -31,18 +31,20 @@ using apollo::perception::TrafficLightDetection;
 using apollo::relative_map::MapMsg;
 using apollo::routing::RoutingRequest;
 using apollo::routing::RoutingResponse;
-#######################################################################
 bool PlanningComponent::Init() {
-        //@zyk:根据FLAGS选择规划器
+        //@zyk:根据FLAGS选择规划器，open_space_planner_switchable设为false
         if (FLAGS_open_space_planner_switchable) {
                 planning_base_ = std::unique_ptr<PlanningBase>(new OpenSpacePlanning());
         } else {
                 planning_base_ = std::unique_ptr<PlanningBase>(new StdPlanning());
         }
-        //@zyk:TODO:这是什么，函数后面加输入流
+        //@zyk:从proto文件中加载配置到config_
+        //@zyk:FLAGS_planning_config_file="/apollo/modules/planning/conf/planning_config.pb.txt"
+        //@zyk:config_是从proto生成的类
         CHECK(apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file, &config_))
-                << "failed to load planning config file " << FLAGS_planning_config_file;
-        planning_base_->Init(config_);   //@zyk:规划器初始化
+                << "failed to load planning config file " << FLAGS_planning_config_file;   //@zyk:TODO:这是什么，函数后面加输入流
+        //@zyk:规划器初始化
+        planning_base_->Init(config_);   
 
         if (FLAGS_use_sim_time) {
                 Clock::SetMode(Clock::MOCK);

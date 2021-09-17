@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "cyber/common/macros.h"
-
 #include "modules/common/proto/drive_state.pb.h"
 #include "modules/common/proto/pnc_point.pb.h"
 #include "modules/map/pnc_map/path.h"
@@ -39,42 +38,42 @@ namespace apollo {
 namespace planning {
 
 class PlanningContext {
- public:
-  struct ProceedWithCautionSpeedParam {
-    bool is_fixed_distance = false;
-    double distance = 5.0;  // m
-  };
+    public:
+        struct ProceedWithCautionSpeedParam {
+                bool is_fixed_distance = false;
+                double distance = 5.0; // m
+        };
 
-  // scenario context
-  struct ScenarioInfo {
-    apollo::hdmap::PathOverlap next_stop_sign_overlap;
-    apollo::hdmap::PathOverlap next_traffic_light_overlap;
-    apollo::hdmap::PathOverlap next_crosswalk_overlap;
-    // still in the scenario for this overlap, but stop already done
-    // => no stop fence from decider_rule_based_stop task
-    std::string stop_done_overlap_id;
-    ProceedWithCautionSpeedParam proceed_with_caution_speed;
-    std::vector<std::string> stop_sign_wait_for_obstacles;
-    std::vector<std::string> crosswalk_wait_for_obstacles;
-  };
+        // scenario context
+        struct ScenarioInfo {
+                apollo::hdmap::PathOverlap next_stop_sign_overlap;
+                apollo::hdmap::PathOverlap next_traffic_light_overlap;
+                apollo::hdmap::PathOverlap next_crosswalk_overlap;
+                // still in the scenario for this overlap, but stop already done
+                // => no stop fence from decider_rule_based_stop task
+                std::string stop_done_overlap_id;
+                ProceedWithCautionSpeedParam proceed_with_caution_speed;
+                std::vector<std::string> stop_sign_wait_for_obstacles;
+                std::vector<std::string> crosswalk_wait_for_obstacles;
+        };
 
-  static void Clear();
+        static void Clear();
 
-  static void Init();
+        static void Init();
 
-  static const PlanningStatus& Planningstatus() { return planning_status_; }
+        static const PlanningStatus& Planningstatus() { return planning_status_; }
 
-  static PlanningStatus* MutablePlanningStatus() { return &planning_status_; }
+        static PlanningStatus* MutablePlanningStatus() { return &planning_status_; }
 
-  static ScenarioInfo* GetScenarioInfo() { return &scenario_info_; }
+        static ScenarioInfo* GetScenarioInfo() { return &scenario_info_; }
 
- private:
-  static PlanningStatus planning_status_;
-  static ScenarioInfo scenario_info_;
+    private:
+        static PlanningStatus planning_status_;
+        static ScenarioInfo scenario_info_;
 
-  // this is a singleton class
-  DECLARE_SINGLETON(PlanningContext)
+        // this is a singleton class
+        DECLARE_SINGLETON(PlanningContext)
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

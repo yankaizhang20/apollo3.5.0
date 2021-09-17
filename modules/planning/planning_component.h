@@ -73,7 +73,7 @@ class PlanningComponent final
 
         std::unique_ptr<PlanningBase> planning_base_;
 
-        PlanningConfig config_;
+        PlanningConfig config_;   //@zyk:这个PlanningConfig是从proto生成的数据结构
 };
 
 CYBER_REGISTER_COMPONENT(PlanningComponent)
