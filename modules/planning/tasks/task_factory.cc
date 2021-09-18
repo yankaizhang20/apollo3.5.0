@@ -45,7 +45,7 @@ apollo::common::util::Factory<
     TaskConfig::TaskType, Task, Task* (*)(const TaskConfig& config),
     std::unordered_map<TaskConfig::TaskType,
                        Task* (*)(const TaskConfig& config), std::hash<int>>>
-    TaskFactory::task_factory_;
+    TaskFactory::task_factory_;   //@zyk静态变量声明
 
 std::unordered_map<TaskConfig::TaskType, TaskConfig, std::hash<int>>
     TaskFactory::default_task_configs_;
@@ -104,8 +104,8 @@ void TaskFactory::Init(const PlanningConfig& config) {
                            return new RssDecider(config);
                          });
   for (const auto& default_task_config : config.default_task_config()) {
-    default_task_configs_[default_task_config.task_type()] =
-        default_task_config;
+    default_task_configs[default_task_config.task_type()] =
+        default__task_config;
   }
 }
 
