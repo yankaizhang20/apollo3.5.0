@@ -50,7 +50,7 @@ apollo::common::util::Factory<
 std::unordered_map<TaskConfig::TaskType, TaskConfig, std::hash<int>>
     TaskFactory::default_task_configs_;
 
-void TaskFactory::Init(const PlanningConfig& config) {
+void TaskFactory:: Init(const PlanningConfig& config) {
   task_factory_.Register(TaskConfig::DP_ST_SPEED_OPTIMIZER,
                          [](const TaskConfig& config) -> Task* {
                            return new DpStSpeedOptimizer(config);
