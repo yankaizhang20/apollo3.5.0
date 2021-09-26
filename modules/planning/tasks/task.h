@@ -22,37 +22,35 @@
 
 #include <string>
 
-#include "modules/planning/proto/planning_config.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/planning/common/frame.h"
 #include "modules/planning/common/reference_line_info.h"
+#include "modules/planning/proto/planning_config.pb.h"
 
 namespace apollo {
 namespace planning {
 
 class Task {
- public:
-  explicit Task(const TaskConfig& config);
+    public:
+        explicit Task(const TaskConfig& config);
 
-  virtual ~Task() = default;
+        virtual ~Task() = default;
 
-  void SetName(const std::string& name) { name_ = name; }
+        void SetName(const std::string& name) { name_ = name; }
 
-  const std::string& Name() const;
+        const std::string& Name() const;
 
-  const TaskConfig& Config() const { return config_; }
+        const TaskConfig& Config() const { return config_; }
 
-  virtual apollo::common::Status Execute(
-      Frame* frame, ReferenceLineInfo* reference_line_info);
+        virtual apollo::common::Status Execute(Frame* frame, ReferenceLineInfo* reference_line_info);
 
- protected:
-  Frame* frame_ = nullptr;
-  ReferenceLineInfo* reference_line_info_ = nullptr;
+    protected:
+        Frame* frame_ = nullptr;
+        ReferenceLineInfo* reference_line_info_ = nullptr;
 
-  TaskConfig config_;
-  std::string name_;
+        TaskConfig config_;
+        std::string name_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

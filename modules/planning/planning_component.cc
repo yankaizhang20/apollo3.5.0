@@ -43,13 +43,16 @@ bool PlanningComponent::Init() {
         //@zyk:config_是从proto生成的类
         CHECK(apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file, &config_))
                 << "failed to load planning config file " << FLAGS_planning_config_file;   //@zyk:TODO:这是什么，函数后面加输入流
-        //@zyk:规划器初始化
+        //@zyk:规划器初始化  TaskFactory工厂初始化
         planning_base_->Init(config_);   
-
+        //TODO:use_sim_time=false "Use bag time in mock time mode."
         if (FLAGS_use_sim_time) {
                 Clock::SetMode(Clock::MOCK);
         }
         //@zyk:读取路由信息
+        /*DEFINE_string(routing_response_topic, "/apollo/routing_response",
+              "routing response topic name");
+        */
         routing_reader_ = node_->CreateReader<RoutingResponse>(
                 FLAGS_routing_response_topic, [this](const std::shared_ptr<RoutingResponse>& routing) {
                         AINFO << "Received routing data: run routing callback." << routing->header().DebugString();
