@@ -385,7 +385,7 @@ function run_customized_path() {
   local module_path=$1
   local module=$2
   local cmd=$3
-  shift 3
+  shift 3    #shift将1、2、3号参数舍弃不要
   case $cmd in
     start)
       start_customized_path $module_path $module "$@"

@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+
 #include <csignal>
 #include <string>
 
@@ -53,82 +54,82 @@ namespace {
 bool g_atexit_registered = false;
 std::mutex g_mutex;
 logger::AsyncLogger* async_logger = nullptr;
-}
+} // namespace
 
 namespace {
 
 void InitLogger(const char* binary_name) {
-  const char* slash = strrchr(binary_name, '/');
-  if (slash) {
-    ::apollo::cyber::Binary::SetName(slash + 1);
-  } else {
-    ::apollo::cyber::Binary::SetName(binary_name);
-  }
-  CHECK_NOTNULL(common::GlobalData::Instance());
+        const char* slash = strrchr(binary_name, '/');   //@zyk:strrchr定位字符串中字符的最后出现的位置
+        if (slash) {
+                ::apollo::cyber::Binary::SetName(slash + 1);
+        } else {
+                ::apollo::cyber::Binary::SetName(binary_name);
+        }
+        CHECK_NOTNULL(common::GlobalData::Instance());
 
-  // Init glog
-  google::InitGoogleLogging(binary_name);
-  google::SetLogDestination(google::ERROR, "");
-  google::SetLogDestination(google::WARNING, "");
-  google::SetLogDestination(google::FATAL, "");
+        // Init glog
+        google::InitGoogleLogging(binary_name);
+        google::SetLogDestination(google::ERROR, "");
+        google::SetLogDestination(google::WARNING, "");
+        google::SetLogDestination(google::FATAL, "");
 
-  // Init async logger
-  async_logger = new ::apollo::cyber::logger::AsyncLogger(
-      google::base::GetLogger(FLAGS_minloglevel), 2 * 1024 * 1024);
-  google::base::SetLogger(FLAGS_minloglevel, async_logger);
-  async_logger->Start();
+        // Init async logger
+        async_logger =
+                new ::apollo::cyber::logger::AsyncLogger(google::base::GetLogger(FLAGS_minloglevel), 2 * 1024 * 1024);
+        google::base::SetLogger(FLAGS_minloglevel, async_logger);
+        async_logger->Start();
 }
 
 void StopLogger() {
-  if (async_logger != nullptr) {
-    async_logger->Stop();
-  }
+        if (async_logger != nullptr) {
+                async_logger->Stop();
+        }
 }
-}  // namespace
+} // namespace
 
 void OnShutdown(int sig) {
-  (void)sig;
-  if (GetState() != STATE_SHUTDOWN) {
-    SetState(STATE_SHUTTING_DOWN);
-  }
+        (void)sig;
+        if (GetState() != STATE_SHUTDOWN) {
+                SetState(STATE_SHUTTING_DOWN);
+        }
 }
 
 void ExitHandle() { Clear(); }
 
 bool Init(const char* binary_name) {
-  std::lock_guard<std::mutex> lg(g_mutex);
-  if (GetState() != STATE_UNINITIALIZED) {
-    return false;
-  }
+        std::lock_guard<std::mutex> lg(g_mutex);
+        if (GetState() != STATE_UNINITIALIZED) {
+                return false;
+        }
 
-  InitLogger(binary_name);
-  std::signal(SIGINT, OnShutdown);
-  // Register exit handlers
-  if (!g_atexit_registered) {
-    if (std::atexit(ExitHandle) != 0) {
-      AERROR << "Register exit handle failed";
-      return false;
-    }
-    AINFO << "Register exit handle succ.";
-    g_atexit_registered = true;
-  }
-  SetState(STATE_INITIALIZED);
-  return true;
+        InitLogger(binary_name);
+        std::signal(SIGINT, OnShutdown);
+        // Register exit handlers
+        if (!g_atexit_registered) {
+                if (std::atexit(ExitHandle) != 0) {
+                        AERROR << "Register exit handle failed";
+                        return false;
+                }
+                AINFO << "Register exit handle succ.";
+                g_atexit_registered = true;
+        }
+        SetState(STATE_INITIALIZED);
+        return true;
 }
 
 void Clear() {
-  std::lock_guard<std::mutex> lg(g_mutex);
-  if (GetState() == STATE_SHUTDOWN || GetState() == STATE_UNINITIALIZED) {
-    return;
-  }
-  TaskManager::CleanUp();
-  TimerManager::CleanUp();
-  scheduler::CleanUp();
-  service_discovery::TopologyManager::CleanUp();
-  transport::Transport::CleanUp();
-  StopLogger();
-  SetState(STATE_SHUTDOWN);
+        std::lock_guard<std::mutex> lg(g_mutex);
+        if (GetState() == STATE_SHUTDOWN || GetState() == STATE_UNINITIALIZED) {
+                return;
+        }
+        TaskManager::CleanUp();
+        TimerManager::CleanUp();
+        scheduler::CleanUp();
+        service_discovery::TopologyManager::CleanUp();
+        transport::Transport::CleanUp();
+        StopLogger();
+        SetState(STATE_SHUTDOWN);
 }
 
-}  // namespace cyber
-}  // namespace apollo
+} // namespace cyber
+} // namespace apollo

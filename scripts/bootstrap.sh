@@ -16,6 +16,7 @@
 # limitations under the License.
 ###############################################################################
 
+#@zyk:bootstrap引导程序
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DREAMVIEW_URL="http://localhost:8888"
 
