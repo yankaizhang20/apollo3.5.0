@@ -10,9 +10,17 @@ planning模块的很多逻辑走向是由配置文件决定的（通过将这部
 
 **使用gflag库，进行参数设置。**可以运行时从命令行改变参数，如果在命令行没有给出该参数的值则使用定义的默认值。一些文件路径等值可以只用这个库
 
+# DreamView模块启动过程
 
+启动脚本文件：**scripts/bootstrap.**
 
 # planning模块架构
 
 [参考1](https://blog.csdn.net/davidhopper/article/details/89360385)
+
+[参考2](https://blog.csdn.net/davidhopper/article/details/89360385)
+
+## 启动入口
+
+apollo的main函数在**/cyber/mainboard/mainboard.cc**
 
