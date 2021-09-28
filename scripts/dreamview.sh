@@ -17,7 +17,7 @@
 ###############################################################################
 
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"  #@zyk:$()是置换命令结果 ${}是置换变量结果
 
 cd "${DIR}/.."
 
@@ -25,4 +25,5 @@ source "${DIR}/apollo_base.sh"
 
 # run function from apollo_base.sh
 # run command_name module_name
+#@zyk:run dreamview start
 run dreamview "$@"

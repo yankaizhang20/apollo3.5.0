@@ -235,14 +235,15 @@ function is_stopped_customized_path() {
 }
 
 function start_customized_path() {
-  MODULE_PATH=$1
-  MODULE=$2
+  MODULE_PATH=$1   #dreamview
+  MODULE=$2   #dreamview
   shift 2
 
   is_stopped_customized_path "${MODULE_PATH}" "${MODULE}"
   if [ $? -eq 1 ]; then
-    # eval 用于替换命令行中的变量（用正确的字符替换转义的字符等），然后再次运行结果表达式
-    # 这个命令通常动态变量，参见https://www.codenong.com/11065077/
+    #@zyk:eval用于两遍扫描以实现变量的间接引用
+    #zyk:& 表示程序后台运行
+    #nohup cyber_launch start /apollo/modules/dreamview/launch/dreamview.launch &
     eval "nohup cyber_launch start /apollo/modules/${MODULE_PATH}/launch/${MODULE}.launch &"
     sleep 0.5
     is_stopped_customized_path "${MODULE_PATH}" "${MODULE}"
@@ -436,6 +437,7 @@ function record_bag_env_log() {
 }
 
 # run command_name module_name
+#@run dreamview start
 function run() {
   local module=$1
   # shift是bash內建命令，将用$取参数时向后漂移一位

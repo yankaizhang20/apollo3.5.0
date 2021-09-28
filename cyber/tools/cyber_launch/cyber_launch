@@ -99,20 +99,24 @@ def module_monitor(mod):
         time.sleep(0.01)
 
 class ProcessWrapper(object):
+    #zyk：当启动dreamview模块时发生的
+    #pw = ProcessWrapper("/apollo/bazel-bin/modules/dreamview/dreamview",0,[""],
+    #  "/apollo/bazel-bin/modules/dreamview/dreamview --flagfile=/apollo/modules/common/data/global_flagfile.txt",
+    #  'binary', 'rspawn')
     def __init__(self, binary_path, dag_num, dag_list, process_name, process_type, sched_name, exception_handler=''):
         self.time_of_death = None
         self.started = False
-        self.binary_path = binary_path
-        self.dag_num = dag_num
-        self.dag_list = dag_list
-        self.name = process_name
-        self.sched_name = sched_name
-        self.process_type = process_type
+        self.binary_path = binary_path   #/apollo/bazel-bin/modules/dreamview/dreamview"
+        self.dag_num = dag_num    #0
+        self.dag_list = dag_list   #[""]
+        self.name = process_name   #"/apollo/bazel-bin/modules/dreamview/dreamview --flagfile=/apollo/modules/common/data/global_flagfile.txt"
+        self.sched_name = sched_name   #
+        self.process_type = process_type    #'binary'
         self.popen = None
         self.exit_code = None
         self.args = []
         self.pid = -1
-        self.exception_handler = exception_handler
+        self.exception_handler = exception_handler  #'rspawn'
 
     def wait(self):
         if self.started:
@@ -280,6 +284,21 @@ class ProcessMonitor(object):
         self.procs = []
         self.dead_cnt = 0
 
+#zyk:start("/apollo/modules/dreamview/launch/dreamview.launch")
+'''zyk
+dreamview.launch的内容
+<cyber>
+    <module>
+        <name>dreamview</name>
+        <dag_conf></dag_conf>
+        <type>binary</type>
+        <process_name>
+           /apollo/bazel-bin/modules/dreamview/dreamview --flagfile=/apollo/modules/common/data/global_flagfile.txt
+        </process_name>
+        <exception_handler>respawn</exception_handler>
+    </module>
+</cyber>
+'''
 def start(launch_file = ''):
     """
     start all modules in xml config
@@ -299,7 +318,7 @@ def start(launch_file = ''):
     logger.info('Launch file   [%s] ' % launch_file)
     logger.info("=" * 120)
 
-    binary_path = g_binary_name
+    binary_path = g_binary_name    #'mainboard'
 
     if not os.path.isfile(launch_file):
         logger.error('Launch xml file %s does not exist' % launch_file)
@@ -389,6 +408,10 @@ def start(launch_file = ''):
                 if len(process_name) == 0:
                    logger.error('Start binary failed. Binary process_name is null')
                    continue
+                #zyk:将模块（进程）相关信息由xml（launch）文件封装到ProcessWrapper类里
+                #pw = ProcessWrapper("/apollo/bazel-bin/modules/dreamview/dreamview",0,[""],
+                # "/apollo/bazel-bin/modules/dreamview/dreamview --flagfile=/apollo/modules/common/data/global_flagfile.txt",
+                #  'binary', 'rspawn')
                 pw = ProcessWrapper(process_name.split()[0], 0, [""], process_name, process_type, exception_handler)
             # default is library
             else:
@@ -447,6 +470,7 @@ def main():
         logger.error('Error: environment variable CYBER_PATH not found, set environment first.')
         sys.exit(1)
     os.chdir(cyber_path)
+    #zyk:解析命令行参数
     parser = argparse.ArgumentParser(description='cyber launcher')
     subparsers = parser.add_subparsers(help='sub-command help')
 
@@ -462,7 +486,9 @@ def main():
     params = parser.parse_args(sys.argv[1:])
 
     command = sys.argv[1]
+    #zyk:上层栈：cyber_launch start /apollo/modules/dreamview/launch/dreamview.launch
     if command == 'start':
+        #start("/apollo/modules/dreamview/launch/dreamview.launch")
         start(params.file)
     elif command == 'stop':
         stop_launch(params.file)
@@ -473,8 +499,8 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGCHLD, signal.SIG_IGN)
+    signal.signal(signal.SIGINT, signal_handler)   #zyk:程序终止信号 ctr+c
+    signal.signal(signal.SIGTERM, signal_handler)   #zyk：程序结束信号
+    signal.signal(signal.SIGCHLD, signal.SIG_IGN)    #zyk:忽略子进程终止信号
     main()
 
