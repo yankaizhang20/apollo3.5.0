@@ -88,7 +88,7 @@ class HMIWorker {
         void StopModule(const std::string& module) const;
 
         void RecordAudio(const std::string& data);
-        //@zyk:config_存放着配置文件名和配置文件路径的映射
+        //@zyk:config_
         const HMIConfig config_;
 
         // HMI status maintainence.
