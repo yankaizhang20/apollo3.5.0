@@ -32,28 +32,26 @@ static const char DEFAULT_process_group_[] = "mainboard_default";
 static const char DEFAULT_sched_name_[] = "CYBER_DEFAULT";
 
 class ModuleArgument {
- public:
-  ModuleArgument();
-  virtual ~ModuleArgument();
-  void DisplayUsage();
-  void ParseArgument(int argc, char* const argv[]);
-  void GetOptions(const int argc, char* const argv[]);
-  inline std::string GetBinaryName() const { return binary_name_; }
-  inline std::string GetProcessGroup() const { return process_group_; }
-  inline std::string GetSchedName() const { return sched_name_; }
-  inline std::list<std::string> GetDAGConfList() const {
-    return dag_conf_list_;
-  }
+    public:
+        ModuleArgument();
+        virtual ~ModuleArgument();
+        void DisplayUsage();
+        void ParseArgument(int argc, char* const argv[]);
+        void GetOptions(const int argc, char* const argv[]);
+        inline std::string GetBinaryName() const { return binary_name_; }
+        inline std::string GetProcessGroup() const { return process_group_; }
+        inline std::string GetSchedName() const { return sched_name_; }
+        inline std::list<std::string> GetDAGConfList() const { return dag_conf_list_; }
 
- private:
-  std::list<std::string> dag_conf_list_;
-  std::string binary_name_;
-  std::string process_group_;
-  std::string sched_name_;
+    private:
+        std::list<std::string> dag_conf_list_;
+        std::string binary_name_;
+        std::string process_group_;
+        std::string sched_name_;
 };
 
-}  // namespace mainboard
-}  // namespace cyber
-}  // namespace apollo
+} // namespace mainboard
+} // namespace cyber
+} // namespace apollo
 
-#endif  // CYBER_MAINBOARD_MODULE_ARGUMENT_H_
+#endif // CYBER_MAINBOARD_MODULE_ARGUMENT_H_

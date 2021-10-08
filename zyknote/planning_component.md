@@ -40,3 +40,8 @@ nohup mainboard -p compute_sched -d /apollo/modules/planning/dag/planning.dag &
 
 main函数蕴含在cyber/manboard/manboard.cc文件中，**其主要过程就是调用ModuleController::LoadModule()函数加载libplanning_component.so以及创建PlanningComponent类。**
 
+## Planning模块作为cyber组件注册并动态创建过程
+
+在planning_component.h中，通过宏来将PlanningComponent注册到工厂的映射中(factory_map)，然后通过在mainboard的ModuleController::LoadModule()中获取对应工厂对象的指针，然后创建功能模块类。
+
+关于模块的启动过程分析可参考《[Apollo 3.5 Planning模块源代码分析](https://blog.csdn.net/davidhopper/article/details/89360385)》《[Apollo 3.5 各功能模块的启动过程解析](https://blog.csdn.net/davidhopper/article/details/85248799)》

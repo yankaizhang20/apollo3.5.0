@@ -54,28 +54,41 @@ class PlanningComponent final
     private:
         void CheckRerouting();
         bool CheckInput();
-
+        //@zyk:订阅者
         std::shared_ptr<cyber::Reader<perception::TrafficLightDetection>> traffic_light_reader_;
         std::shared_ptr<cyber::Reader<routing::RoutingResponse>> routing_reader_;
         std::shared_ptr<cyber::Reader<planning::PadMessage>> pad_message_reader_;
         std::shared_ptr<cyber::Reader<relative_map::MapMsg>> relative_map_reader_;
-
+        //@zyk:发布者
         std::shared_ptr<cyber::Writer<ADCTrajectory>> planning_writer_;
         std::shared_ptr<cyber::Writer<routing::RoutingRequest>> rerouting_writer_;
 
         std::mutex mutex_;
-        perception::TrafficLightDetection traffic_light_;
-        routing::RoutingResponse routing_;
-        PadMessage pad_message_;
-        relative_map::MapMsg relative_map_;
+        //@zyk:环境理解
+        perception::TrafficLightDetection traffic_light_; //@zyk:交通灯
+        routing::RoutingResponse routing_;                //@zyk:路由
+        PadMessage pad_message_;                          //@zyk:pad消息
+        relative_map::MapMsg relative_map_;               //@zyk:地图信息
 
-        LocalView local_view_;
-
+        LocalView local_view_; //@zyk:综合信息
+        //@zyk:规划器
         std::unique_ptr<PlanningBase> planning_base_;
-
-        PlanningConfig config_;   //@zyk:这个PlanningConfig是从proto生成的数据结构
+        //@zyk:配置文件
+        PlanningConfig config_; //@zyk:这个PlanningConfig是从proto生成的数据结构
 };
 
+//@zyk:注册组件
+/*
+namespace {
+  struct ProxyType__COUNTER__ {
+    ProxyType__COUNTER__() {
+      apollo::cyber::class_loader::utility::RegisterClass<PlanningComponent, apollo::cyber::ComponentBase>(
+          "PlanningComponent", "apollo::cyber::ComponentBase");
+    }
+  };
+  static ProxyType__COUNTER__ g_register_class___COUNTER__;
+}
+*/
 CYBER_REGISTER_COMPONENT(PlanningComponent)
 
 } // namespace planning
