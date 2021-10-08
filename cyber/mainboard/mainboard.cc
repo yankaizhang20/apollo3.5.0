@@ -20,13 +20,13 @@
 #include "cyber/mainboard/module_argument.h"
 #include "cyber/mainboard/module_controller.h"
 #include "cyber/state.h"
-#include "gflags/gflags.h"
+#include "gflags/gflags.h"   //@zyk:处理命令行参数
 
 using apollo::cyber::mainboard::ModuleArgument;
 using apollo::cyber::mainboard::ModuleController;
 
 int main(int argc, char** argv) {
-        //TODO:
+        //@zyk:用于在命令行中加--help中时，显示帮助信息
         google::SetUsageMessage("we use this program to load dag and run user apps.");
 
         // parse the argument

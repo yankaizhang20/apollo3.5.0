@@ -72,6 +72,23 @@ void ModuleArgument::GetOptions(const int argc, char* const argv[]) {
         opterr = 0; // extern int opterr
         int long_index = 0;
         const std::string short_opts = "hd:p:s:";
+        /*在c程序应用程序执行的时，常常配有一些参数，如果参数少我们可以使用arvg，arvc来实现，
+          如果参数很多并且需要传入参数复杂我们可以使用strcut option 来实现
+          struct option {
+                const char *name; //name表示的是长参数名
+                int has_arg；
+                //has_arg有3个值，no_argument(或者是0)，表示该参数后面不跟参数值
+                // required_argument(或者是1),表示该参数后面一定要跟个参数值
+                // optional_argument(或者是2),表示该参数后面可以跟，也可以不跟参数值
+                int *flag;    
+                //用来决定，getopt_long()的返回值到底是什么。如果这个指针为NULL，那么getopt_long()返回
+                该结构val字段中的数值。如果该指针不为NULL，getopt_long()会使得它所指向的变量中填入val字段
+                中的数值，并且getopt_long()返回0。如果flag不是NULL，但未发现长选项，那么它所指向的变量的数值不变。
+                int val;    
+                //和flag联合决定返回值 这个值是发现了长选项时的返回值，或者flag不是 NULL时载入*flag中的值。典型情况下，若flag不是NULL，那么val是个真／假值，譬如1 或0；另一方面，如 果flag是NULL，那么val通常是字符常量，若长选项与短选项一致，那么该字符常量应该与optstring中出现的这个选项的参数相同。
+            };
+        关于使用option解析参数的方式参考https://www.cnblogs.com/hnrainll/archive/2011/09/15/2176933.html
+        */
         static const struct option long_opts[] = {{"help", no_argument, nullptr, 'h'},
                                                   {"dag_conf", required_argument, nullptr, 'd'},
                                                   {"process_name", required_argument, nullptr, 'p'},
@@ -93,8 +110,8 @@ void ModuleArgument::GetOptions(const int argc, char* const argv[]) {
                 }
                 switch (opt) {
                         case 'd':
-                                dag_conf_list_.emplace_back(std::string(optarg));
-                                for (int i = optind; i < argc; i++) {
+                                dag_conf_list_.emplace_back(std::string(optarg));    //@zyk:全局变量，当处理一个带参数的选项时，全局变量optarg会指向它的参数
+                                for (int i = optind; i < argc; i++) {    //@zyk:optind是getopt.h里定义的全局变量，是argv中将要被处理的下一个元素的下标
                                         if (*argv[i] != '-') {
                                                 dag_conf_list_.emplace_back(std::string(argv[i]));
                                         } else {
