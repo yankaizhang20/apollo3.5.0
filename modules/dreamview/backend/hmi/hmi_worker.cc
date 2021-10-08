@@ -183,7 +183,8 @@ HMIMode HMIWorker::LoadMode(const std::string& mode_config_path) {
                 const auto& process_group = cyber_module.process_group();
                 if (!process_group.empty()) {
                         StrAppend(module.mutable_start_command(), " -p ", process_group);
- (const std::string& dag : cyber_module.dag_files()) {
+                }
+                for (const std::string& dag : cyber_module.dag_files()) {
                         StrAppend(module.mutable_start_command(), " -d ", dag);
                 }
                 StrAppend(module.mutable_start_command(), " &");
