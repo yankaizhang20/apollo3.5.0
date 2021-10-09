@@ -52,7 +52,7 @@ typename std::enable_if<!HasShutdown<T>::value>::type CallShutdown(T *instance) 
 //@zyk:std::nothrow用于使new失败时返回空指针
 /*@zyk:
 单例模式注意
-1.构造函数，拷贝构造函数，赋值号，析构函数private
+1.构造函数，拷贝构造函数，赋值号private
 2.有一个公有接口用于创建或者获得该类的实例，由于无法通过构造函数显示创建实例，所以该类应当是静态的
 3.实例要一直存在，所以实例的指针应当是静态的，以便下次调用接口时可以访问到该实例
 4.多线程安全，用std::call_once
