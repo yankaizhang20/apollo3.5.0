@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include <cerrno>
 #include <cstdint>
 #include <cstring>
@@ -29,12 +30,12 @@
 
 namespace apollo {
 namespace cyber {
-
+//@zyk:枚举定义在全局时，未经初始化的默认值为0
 enum State : std::uint8_t {
-  STATE_UNINITIALIZED = 0,
-  STATE_INITIALIZED,
-  STATE_SHUTTING_DOWN,
-  STATE_SHUTDOWN,
+        STATE_UNINITIALIZED = 0,
+        STATE_INITIALIZED,
+        STATE_SHUTTING_DOWN,
+        STATE_SHUTDOWN,
 };
 
 State GetState();
@@ -42,24 +43,22 @@ void SetState(const State& state);
 
 inline bool OK() { return GetState() == STATE_INITIALIZED; }
 
-inline bool IsShutdown() {
-  return GetState() == STATE_SHUTTING_DOWN || GetState() == STATE_SHUTDOWN;
-}
+inline bool IsShutdown() { return GetState() == STATE_SHUTTING_DOWN || GetState() == STATE_SHUTDOWN; }
 
 inline void WaitForShutdown() {
-  while (!IsShutdown()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(200));
-  }
+        while (!IsShutdown()) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        }
 }
 
 inline void AsyncShutdown() {
-  pid_t pid = getpid();
-  if (kill(pid, SIGINT) != 0) {
-    AERROR << strerror(errno);
-  }
+        pid_t pid = getpid();
+        if (kill(pid, SIGINT) != 0) {
+                AERROR << strerror(errno);
+        }
 }
 
-}  // namespace cyber
-}  // namespace apollo
+} // namespace cyber
+} // namespace apollo
 
-#endif  // CYBER_STATE_H_
+#endif // CYBER_STATE_H_

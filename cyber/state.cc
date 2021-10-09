@@ -16,7 +16,7 @@
 
 #include "cyber/state.h"
 
-#include <atomic>
+#include <atomic> //@zyk:原子操作用于线程同步
 
 namespace apollo {
 namespace cyber {
@@ -29,5 +29,5 @@ State GetState() { return g_cyber_state.load(); }
 
 void SetState(const State& state) { g_cyber_state.store(state); }
 
-}  // namespace cyber
-}  // namespace apollo
+} // namespace cyber
+} // namespace apollo

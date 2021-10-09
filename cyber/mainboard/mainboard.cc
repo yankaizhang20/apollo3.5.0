@@ -25,6 +25,7 @@
 using apollo::cyber::mainboard::ModuleArgument;
 using apollo::cyber::mainboard::ModuleController;
 
+//@zyk: nohup mainboard -p compute_sched -d /apollo/modules/planning/dag/planning.dag &
 int main(int argc, char** argv) {
         //@zyk:用于在命令行中加--help中时，显示帮助信息
         google::SetUsageMessage("we use this program to load dag and run user apps.");
@@ -34,6 +35,7 @@ int main(int argc, char** argv) {
         module_args.ParseArgument(argc, argv);
 
         // initialize cyber
+        //@zyk:apollo::cyber::Init("mainboard")
         apollo::cyber::Init(argv[0]);
 
         // start module

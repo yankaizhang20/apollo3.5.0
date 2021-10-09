@@ -57,7 +57,7 @@ logger::AsyncLogger* async_logger = nullptr;
 } // namespace
 
 namespace {
-
+//@zyk:InitLogger("mainboard")
 void InitLogger(const char* binary_name) {
         const char* slash = strrchr(binary_name, '/');   //@zyk:strrchr定位字符串中字符的最后出现的位置
         if (slash) {
@@ -65,6 +65,7 @@ void InitLogger(const char* binary_name) {
         } else {
                 ::apollo::cyber::Binary::SetName(binary_name);
         }
+        //glog的宏
         CHECK_NOTNULL(common::GlobalData::Instance());
 
         // Init glog
@@ -96,13 +97,15 @@ void OnShutdown(int sig) {
 
 void ExitHandle() { Clear(); }
 
+//@zyk:Init("mainboard")
 bool Init(const char* binary_name) {
         std::lock_guard<std::mutex> lg(g_mutex);
         if (GetState() != STATE_UNINITIALIZED) {
                 return false;
         }
-
+        //@zyk:InitLogger("mainboard")
         InitLogger(binary_name);
+        //TODO:看到这里
         std::signal(SIGINT, OnShutdown);
         // Register exit handlers
         if (!g_atexit_registered) {
