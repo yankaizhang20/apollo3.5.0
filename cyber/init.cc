@@ -104,9 +104,9 @@ bool Init(const char* binary_name) {
                 return false;
         }
         //@zyk:InitLogger("mainboard")
-        InitLogger(binary_name);
-        //TODO:看到这里
-        std::signal(SIGINT, OnShutdown);
+        InitLogger(binary_name)
+        //@zyk:程序结束的时候标记State为STATE_SHUTTING_DOWN
+        std::signal(SIGINT,OnShutdown);
         // Register exit handlers
         if (!g_atexit_registered) {
                 if (std::atexit(ExitHandle) != 0) {

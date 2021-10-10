@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
 
         // initialize cyber
         //@zyk:apollo::cyber::Init("mainboard")
+        //@zyk:设置程序状态，初始化日志glog,定义程序中断和退出时的行为
         apollo::cyber::Init(argv[0]);
 
         // start module

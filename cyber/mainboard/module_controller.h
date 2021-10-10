@@ -32,25 +32,25 @@ namespace mainboard {
 using apollo::cyber::proto::DagConfig;
 
 class ModuleController {
- public:
-  explicit ModuleController(const ModuleArgument& args);
-  virtual ~ModuleController();
+    public:
+        explicit ModuleController(const ModuleArgument& args);
+        virtual ~ModuleController();
 
-  bool Init();
-  bool LoadAll();
-  void Clear();
+        bool Init();
+        bool LoadAll();
+        void Clear();
 
- private:
-  bool LoadModule(const std::string& path);
-  bool LoadModule(const DagConfig& dag_config);
+    private:
+        bool LoadModule(const std::string& path);
+        bool LoadModule(const DagConfig& dag_config);
 
-  ModuleArgument args_;
-  class_loader::ClassLoaderManager class_loader_manager_;
-  std::vector<std::shared_ptr<ComponentBase>> component_list_;
+        ModuleArgument args_;
+        class_loader::ClassLoaderManager class_loader_manager_;
+        std::vector<std::shared_ptr<ComponentBase>> component_list_;
 };
 
-}  // namespace mainboard
-}  // namespace cyber
-}  // namespace apollo
+} // namespace mainboard
+} // namespace cyber
+} // namespace apollo
 
-#endif  // CYBER_MAINBOARD_MODULE_CONTROLLER_H_
+#endif // CYBER_MAINBOARD_MODULE_CONTROLLER_H_

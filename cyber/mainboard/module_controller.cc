@@ -41,12 +41,15 @@ void ModuleController::Clear() {
 }
 
 bool ModuleController::LoadAll() {
+        //@zyk：获取环境变量CYBER_PATH的值，如果没有则为/apollo/cyber
         const std::string work_root = common::WorkRoot();
         const std::string current_path = common::GetCurrentPath();
+        //@zyk:dag_root_path==/apollo/cyber/dag
         const std::string dag_root_path = common::GetAbsolutePath(work_root, "dag");
-
+        //@zyk:处理命令行参数-d(dag_conf)
         for (auto& dag_conf : args_.GetDAGConfList()) {
                 std::string module_path = "";
+                //@zyk：获得dag文件的绝对路径
                 if (dag_conf == common::GetFileName(dag_conf)) {
                         // case dag conf argument var is a filename
                         module_path = common::GetAbsolutePath(dag_root_path, dag_conf);
@@ -114,6 +117,7 @@ bool ModuleController::LoadModule(const DagConfig& dag_config) {
                         AERROR << "Path not exist: " << load_path;
                         return false;
                 }
+                //TODO:
                 //@zyk:LoadLibrary("/apollo/bazel-bin/modules/planning/libplanning_component.so")
                 class_loader_manager_.LoadLibrary(load_path);
                 //@zyk:创建PlanningComponent类
