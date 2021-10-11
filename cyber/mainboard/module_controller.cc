@@ -117,12 +117,14 @@ bool ModuleController::LoadModule(const DagConfig& dag_config) {
                         AERROR << "Path not exist: " << load_path;
                         return false;
                 }
-                //TODO:
                 //@zyk:LoadLibrary("/apollo/bazel-bin/modules/planning/libplanning_component.so")
+                //@TODO:关于具体如何加载库还需研究
                 class_loader_manager_.LoadLibrary(load_path);
                 //@zyk:创建PlanningComponent类
                 for (auto& component : module_config.components()) {
+                        //@zyk:class_name=="PlanningComponent"
                         const std::string& class_name = component.class_name();
+                        //TODO:用工厂模式创建组件对象PlanningComponent的具体过程有待研究
                         std::shared_ptr<ComponentBase> base =
                                 class_loader_manager_.CreateClassObj<ComponentBase>(class_name);
                         if (base == nullptr) {

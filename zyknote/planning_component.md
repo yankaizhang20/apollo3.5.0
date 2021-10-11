@@ -1,14 +1,8 @@
-# 功能组件
+# Cyber
 
-## protobuf
+[参考1](https://zhuanlan.zhihu.com/p/56053077)
 
-使用protobuf进行数据结构的一致性，进行编译后可以形成指定文件的源代码，在c++中是name.pb.h，使用的时候直接按类来用就可以。
-
-planning模块的很多逻辑走向是由配置文件决定的（通过将这部分内容从代码中剥离，可以方便的直接对配置文件进行调整，而不用编译源代码），conf文件夹统一存放配置文件，文件名后缀为pb.txt，和proto中的proto文件相对应，可以直接被proto文件生成的数据结构读取。**也就是proto定义了配置的field，conf指定了field的值**
-
-## gflag
-
-**使用gflag库，进行参数设置。**可以运行时从命令行改变参数，如果在命令行没有给出该参数的值则使用定义的默认值。一些文件路径等值可以只用这个库
+**cyber 为开发者提供了Component类，开发者的算法业务模块只需要继承该类，实现其中的Proc接口即可。该接口类似于ROS中的Callback，消息通过参数的方式传递，用户只要在Proc中实现算法、消息处理相关的逻辑。**
 
 # DreamView模块启动过程
 
@@ -45,3 +39,15 @@ main函数蕴含在cyber/manboard/manboard.cc文件中，**其主要过程就是
 在planning_component.h中，通过宏来将PlanningComponent注册到工厂的映射中(factory_map)，然后通过在mainboard的ModuleController::LoadModule()中获取对应工厂对象的指针，然后创建功能模块类。
 
 关于模块的启动过程分析可参考《[Apollo 3.5 Planning模块源代码分析](https://blog.csdn.net/davidhopper/article/details/89360385)》《[Apollo 3.5 各功能模块的启动过程解析](https://blog.csdn.net/davidhopper/article/details/85248799)》
+
+# 使用到的工具
+
+## protobuf
+
+使用protobuf进行数据结构的一致性，进行编译后可以形成指定文件的源代码，在c++中是name.pb.h，使用的时候直接按类来用就可以。
+
+planning模块的很多逻辑走向是由配置文件决定的（通过将这部分内容从代码中剥离，可以方便的直接对配置文件进行调整，而不用编译源代码），conf文件夹统一存放配置文件，文件名后缀为pb.txt，和proto中的proto文件相对应，可以直接被proto文件生成的数据结构读取。**也就是proto定义了配置的field，conf指定了field的值**
+
+## gflag
+
+**使用gflag库，进行参数设置。**可以运行时从命令行改变参数，如果在命令行没有给出该参数的值则使用定义的默认值。一些文件路径等值可以只用这个库

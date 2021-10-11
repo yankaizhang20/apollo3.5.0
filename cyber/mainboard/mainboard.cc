@@ -41,12 +41,12 @@ int main(int argc, char** argv) {
 
         // start module
         ModuleController controller(module_args);
+        //@zyk:在这里调用了PlanningComponent::Init()
         if (!controller.Init()) {
                 controller.Clear();
                 AERROR << "module start error.";
                 return -1;
         }
-
         apollo::cyber::WaitForShutdown();
         controller.Clear();
         AINFO << "exit mainboard.";

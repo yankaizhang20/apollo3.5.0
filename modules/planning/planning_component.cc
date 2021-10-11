@@ -31,6 +31,7 @@ using apollo::perception::TrafficLightDetection;
 using apollo::relative_map::MapMsg;
 using apollo::routing::RoutingRequest;
 using apollo::routing::RoutingResponse;
+//@zyk:进行了一些初始化，主要是创建了读写者，注册了读者的回调函数
 bool PlanningComponent::Init() {
         //@zyk:根据FLAGS选择规划器，open_space_planner_switchable设为false
         if (FLAGS_open_space_planner_switchable) {
@@ -44,6 +45,7 @@ bool PlanningComponent::Init() {
         CHECK(apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file, &config_))
                 << "failed to load planning config file " << FLAGS_planning_config_file;   //@zyk:TODO:这是什么，函数后面加输入流
         //@zyk:规划器初始化  TaskFactory工厂初始化
+        //@zyk:config_中包含了四种planning的配置，支持的规划器，支持的场景类型等
         planning_base_->Init(config_);   
         //TODO:use_sim_time=false "Use bag time in mock time mode."
         if (FLAGS_use_sim_time) {
@@ -107,7 +109,7 @@ bool PlanningComponent::Proc(const std::shared_ptr<prediction::PredictionObstacl
         local_view_.prediction_obstacles = prediction_obstacles;
         local_view_.chassis = chassis;
         local_view_.localization_estimate = localization_estimate;
-        {       //@zyk:TODO:lock_guard
+        {     
                 std::lock_guard<std::mutex> lock(mutex_);
                 //@zyk:判断是否是新的路径
                 if (!local_view_.routing || hdmap::PncMap::IsNewRouting(*local_view_.routing, routing_)) {

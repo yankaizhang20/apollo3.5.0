@@ -24,7 +24,7 @@ message SpeedPoint {
   optional double v = 3;
   // acceleration (m/s^2)
   optional double a = 4;
-  // jerk (m/s^3)
+  // jerk (m/s^3) //@zyk:加速度的变化率
   optional double da = 5;
 }
 
@@ -34,9 +34,9 @@ message PathPoint {
   optional double y = 2;
   optional double z = 3;
 
-  // direction on the x-y plane
+  // direction on the x-y plane  //@zyk:航向
   optional double theta = 4;
-  // curvature on the x-y planning
+  // curvature on the x-y planning //@zyk:曲率
   optional double kappa = 5;
   // accumulated distance from beginning of the path
   optional double s = 6;
