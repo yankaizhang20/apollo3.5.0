@@ -37,7 +37,7 @@ bool PlanningComponent::Init() {
         if (FLAGS_open_space_planner_switchable) {
                 planning_base_ = std::unique_ptr<PlanningBase>(new OpenSpacePlanning());
         } else {
-                planning_base_ = std::unique_ptr<PlanningBase>(new StdPlanning());
+                planning_base_ = std::unique_ptr<PlanningBase>(new StdPlanning());     //@zyk:选的是这个StdPlanning
         }
         //@zyk:从proto文件中加载配置到config_
         //@zyk:FLAGS_planning_config_file="/apollo/modules/planning/conf/planning_config.pb.txt"
@@ -101,7 +101,7 @@ bool PlanningComponent::Proc(const std::shared_ptr<prediction::PredictionObstacl
                 Clock::SetNowInSeconds(localization_estimate->header().timestamp_sec());
         }
         // check and process possible rerouting request
-        //@zyk:检查和处理可能的重定向请求
+        //@zyk:检查和处理可能的重路由请求
         CheckRerouting();
 
         // process fused input data

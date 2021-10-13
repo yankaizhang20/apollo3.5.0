@@ -58,6 +58,7 @@ class StdPlanning : public PlanningBase {
          * @brief main logic of the planning module, runs periodically triggered by
          * timer.
          */
+        //@zyk:规划模块的主要逻辑，由timer周期性触发
         void RunOnce(const LocalView& local_view, ADCTrajectory* const trajectory_pb) override;
 
         apollo::common::Status Plan(const double current_time_stamp,
