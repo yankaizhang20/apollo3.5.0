@@ -208,7 +208,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         // differs only a small amount (20ms). When the different is too large, the
         // estimation is invalid.
         //@zyk:estimate_current_vehicle_state==true
-        //@zyk:这是在消除系统误差嘛？
+        //@zyk:这是在消除系统误差
         if (FLAGS_estimate_current_vehicle_state && start_timestamp - vehicle_state.timestamp() < 0.020) {
                 auto future_xy = VehicleStateProvider::Instance()->EstimateFuturePosition(start_timestamp -
                                                                                           vehicle_state.timestamp());
