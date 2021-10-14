@@ -14,7 +14,7 @@ message VehicleState {
   optional double pitch = 6 [default = 0.0];
   optional double yaw = 7 [default = 0.0];
   optional double heading = 8 [default = 0.0];
-  optional double kappa = 9 [default = 0.0];
+  optional double kappa = 9 [defau  lt = 0.0];
   optional double linear_velocity = 10 [default = 0.0];
   optional double angular_velocity = 11 [default = 0.0];
   optional double linear_acceleration = 12 [default = 0.0];
