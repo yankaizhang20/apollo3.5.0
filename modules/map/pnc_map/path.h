@@ -34,7 +34,7 @@ namespace hdmap {
 
 // class LaneInfoConstPtr;
 // class OverlapInfoConstPtr;
-
+//@zyk:描述车道上的点
 struct LaneWaypoint {
         LaneWaypoint() = default;
         LaneWaypoint(LaneInfoConstPtr lane, const double s) : lane(CHECK_NOTNULL(lane)), s(s) {}
