@@ -24,7 +24,7 @@
 #include "gflags/gflags.h"
 
 DECLARE_string(localization_module_name);
-
+ 
 DECLARE_double(localization_publish_freq);
 
 DECLARE_string(localization_config_file);
