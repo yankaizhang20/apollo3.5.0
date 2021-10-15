@@ -26,7 +26,9 @@ message PathDeciderConfig {
 // * a stage has one or
 
 // tasks are shared among all scenarios and stages.
+//@zyk:planning的配置基于这样的架构：一个场景有多个阶段，一个阶段有多个任务，任务被所有的场景和阶段所共同使用
 message TaskConfig {
+  //@zyk:task分为decider和optimizer两大类
   enum TaskType {
     DP_POLY_PATH_OPTIMIZER = 0;
     DP_ST_SPEED_OPTIMIZER = 1;
