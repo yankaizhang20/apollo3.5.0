@@ -53,6 +53,7 @@ namespace util {
  * @param MapContainer Internal implementation of the function mapping
  * IdentifierType to ProductCreator, by default std::unordered_map
  */
+//@zyk:工厂方法模式
 template <typename IdentifierType, class AbstractProduct, class ProductCreator = AbstractProduct *(*)(),    //@zyk函数指针，返回值类型为AbstractProduct*
           class MapContainer = std::map<IdentifierType, ProductCreator>>
 class Factory {
