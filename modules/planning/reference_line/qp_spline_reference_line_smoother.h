@@ -23,10 +23,9 @@
 #include <memory>
 #include <vector>
 
+#include "modules/planning/math/smoothing_spline/spline_2d_solver.h"
 #include "modules/planning/proto/planning.pb.h"
 #include "modules/planning/proto/reference_line_smoother_config.pb.h"
-
-#include "modules/planning/math/smoothing_spline/spline_2d_solver.h"
 #include "modules/planning/reference_line/reference_line.h"
 #include "modules/planning/reference_line/reference_line_smoother.h"
 #include "modules/planning/reference_line/reference_point.h"
@@ -35,44 +34,41 @@ namespace apollo {
 namespace planning {
 
 class QpSplineReferenceLineSmoother : public ReferenceLineSmoother {
- public:
-  explicit QpSplineReferenceLineSmoother(
-      const ReferenceLineSmootherConfig& config);
+    public:
+        explicit QpSplineReferenceLineSmoother(const ReferenceLineSmootherConfig& config);
 
-  virtual ~QpSplineReferenceLineSmoother() = default;
+        virtual ~QpSplineReferenceLineSmoother() = default;
 
-  bool Smooth(const ReferenceLine& raw_reference_line,
-              ReferenceLine* const smoothed_reference_line) override;
+        bool Smooth(const ReferenceLine& raw_reference_line, ReferenceLine* const smoothed_reference_line) override;
 
-  void SetAnchorPoints(const std::vector<AnchorPoint>& achor_points) override;
+        void SetAnchorPoints(const std::vector<AnchorPoint>& achor_points) override;
 
- private:
-  void Clear();
+    private:
+        void Clear();
 
-  bool Sampling();
+        bool Sampling();
 
-  bool AddConstraint();
+        bool AddConstraint();
 
-  bool AddKernel();
+        bool AddKernel();
 
-  bool Solve();
+        bool Solve();
 
-  bool ExtractEvaluatedPoints(
-      const ReferenceLine& raw_reference_line, const std::vector<double>& vec_t,
-      std::vector<common::PathPoint>* const path_points) const;
+        bool ExtractEvaluatedPoints(const ReferenceLine& raw_reference_line, const std::vector<double>& vec_t,
+                                    std::vector<common::PathPoint>* const path_points) const;
 
-  bool GetSFromParamT(const double t, double* const s) const;
+        bool GetSFromParamT(const double t, double* const s) const;
 
-  std::uint32_t FindIndex(const double t) const;
+        std::uint32_t FindIndex(const double t) const;
 
- private:
-  std::vector<double> t_knots_;
-  std::vector<AnchorPoint> anchor_points_;
-  std::unique_ptr<Spline2dSolver> spline_solver_;
+    private:
+        std::vector<double> t_knots_;
+        std::vector<AnchorPoint> anchor_points_;
+        std::unique_ptr<Spline2dSolver> spline_solver_;
 
-  double ref_x_ = 0.0;
-  double ref_y_ = 0.0;
+        double ref_x_ = 0.0;
+        double ref_y_ = 0.0;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
