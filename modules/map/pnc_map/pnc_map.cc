@@ -384,7 +384,7 @@ bool PncMap::GetRouteSegments(const VehicleState &vehicle_state, std::list<Route
         double look_backward_distance = FLAGS_look_backward_distance;
         return GetRouteSegments(vehicle_state, look_backward_distance, look_forward_distance, route_segments);
 }
-//@zyk:读取routing规划结果后，进行处理，获得车辆可行驶的RouteSegments（一系列LaneSegment）,可能有多个RouteSegment，
+//@zyk:读取routing规划结果后，进行处理，获得车辆可行驶的RouteSegments,可能有多个RouteSegment，
 //因为可能有多条可行驶路径
 bool PncMap::GetRouteSegments(const VehicleState &vehicle_state, const double backward_length,
                               const double forward_length, std::list<RouteSegments> *const route_segments) {

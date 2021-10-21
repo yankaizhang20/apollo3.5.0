@@ -59,6 +59,7 @@ namespace planning {
 class ReferenceLineProvider {
     public:
         ReferenceLineProvider() = default;
+        //@zyk:读取smoother配置文件
         explicit ReferenceLineProvider(const hdmap::HDMap* base_map);
 
         /**

@@ -120,6 +120,7 @@ Status StdPlanning::Init(const PlanningConfig& config) {
         }
 
         start_time_ = Clock::NowInSeconds();
+        //@zyk:主要是加载所支持的场景
         return planner_->Init(config_);
 }
 

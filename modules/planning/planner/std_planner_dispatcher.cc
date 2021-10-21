@@ -24,16 +24,13 @@ namespace apollo {
 namespace planning {
 
 std::unique_ptr<Planner> StdPlannerDispatcher::DispatchPlanner() {
-  PlanningConfig planning_config;
-  apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file,
-                                         &planning_config);
-  if (FLAGS_open_space_planner_switchable) {
-    return planner_factory_.CreateObject(
-        planning_config.standard_planning_config().planner_type(1));
-  }
-  return planner_factory_.CreateObject(
-      planning_config.standard_planning_config().planner_type(0));
+        PlanningConfig planning_config;
+        apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file, &planning_config);
+        if (FLAGS_open_space_planner_switchable) {
+                return planner_factory_.CreateObject(planning_config.standard_planning_config().planner_type(1));
+        }
+        return planner_factory_.CreateObject(planning_config.standard_planning_config().planner_type(0));
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

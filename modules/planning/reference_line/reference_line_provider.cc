@@ -197,19 +197,19 @@ bool ReferenceLineProvider::GetReferenceLines(std::list<ReferenceLine> *referenc
         CHECK_NOTNULL(reference_lines);
         CHECK_NOTNULL(segments);
 
-        //  if (FLAGS_use_navigation_mode) {
-        //    double start_time = Clock::NowInSeconds();
-        //    bool result = GetReferenceLinesFromRelativeMap(
-        //        AdapterManager::GetRelativeMap()->GetLatestObserved(),
-        //        reference_lines,
-        //        segments);
-        //    if (!result) {
-        //      AERROR << "Failed to get reference line from relative map";
-        //    }
-        //    double end_time = Clock::NowInSeconds();
-        //    last_calculation_time_ = end_time - start_time;
-        //    return result;
-        //  }
+        if (FLAGS_use_navigation_mode) {
+                double start_time = Clock::NowInSeconds();
+                bool result = GetReferenceLinesFromRelativeMap(
+                    AdapterManager::GetRelativeMap()->GetLatestObserved(),
+                    reference_lines,
+                    segments);
+                if (!result) {
+                    AERROR << "Failed to get reference line from relative map";
+                }
+                double end_time = Clock::NowInSeconds();
+                last_calculation_time_ = end_time - start_time;
+                return result;
+        }
 
         if (FLAGS_enable_reference_line_provider_thread) {
                 std::lock_guard<std::mutex> lock(reference_lines_mutex_);
