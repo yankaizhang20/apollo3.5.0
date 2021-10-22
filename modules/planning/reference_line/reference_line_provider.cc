@@ -163,6 +163,7 @@ void ReferenceLineProvider::UpdateReferenceLine(const std::list<ReferenceLine> &
 
 void ReferenceLineProvider::GenerateThread() {
         while (!is_stop_) {
+                //@zyk:这里的新线程为什么要睡眠一段时间
                 constexpr int32_t kSleepTime = 50; // milliseconds
                 cyber::SleepFor(std::chrono::milliseconds(kSleepTime));
                 double start_time = Clock::NowInSeconds();
