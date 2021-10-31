@@ -318,9 +318,9 @@ Path::Path(std::vector<MapPathPoint>&& path_points, std::vector<LaneSegment>&& l
 }
 
 void Path::Init() {
-        InitPoints();
-        InitLaneSegments();
-        InitPointIndex();
+        InitPoints();   //@zyk:主要初始化线段集合segments_,累计s的集合accumulated_s_,和线段的方向unit_directions
+        InitLaneSegments();    //@zyk:也是根据path_points初始化lane_segments_,path内包含的所有lane
+        InitPointIndex();   
         InitWidth();
         InitOverlaps();
 }
@@ -362,6 +362,7 @@ void Path::InitPoints() {
 }
 
 void Path::InitLaneSegments() {
+        //@zyk:找到各个MapPathPoint之间的LaneSegment
         if (lane_segments_.empty()) {
                 for (int i = 0; i + 1 < num_points_; ++i) {
                         LaneSegment lane_segment;
@@ -370,6 +371,7 @@ void Path::InitLaneSegments() {
                         }
                 }
         }
+        //@将上面得到的各条相同的lanesegment合并
         LaneSegment::Join(&lane_segments_);
         if (lane_segments_.empty()) {
                 return;
@@ -438,7 +440,7 @@ void Path::InitWidth() {
         CHECK_EQ(road_left_width_.size(), num_sample_points_);
         CHECK_EQ(road_right_width_.size(), num_sample_points_);
 }
-
+//@zyk:sample_points的间隔是比path_points_的间隔小的(应当是大），这个last_point_index是为求某个采样点的前一个path_point_的index
 void Path::InitPointIndex() {
         last_point_index_.clear();
         last_point_index_.reserve(num_sample_points_);
@@ -575,7 +577,7 @@ double Path::GetSFromIndex(const InterpolatedIndex& index) const {
         }
         return accumulated_s_[index.id] + index.offset;
 }
-
+//@zyk:先通过last_point_index_找到s所在path_points_的区间范围，然后用二分法找到离s最近的path_point_和相差距离
 InterpolatedIndex Path::GetIndexFromS(double s) const {
         if (s <= 0.0) {
                 return {0, 0.0};
