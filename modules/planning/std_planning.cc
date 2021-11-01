@@ -74,7 +74,7 @@ bool IsDifferentRouting(const RoutingResponse& first, const RoutingResponse& sec
 
 StdPlanning::~StdPlanning() {
         if (reference_line_provider_) {
-                reference_line_provider_->Stop();
+                reference_line_provider_->Stop();   
         }
         planner_->Stop();
         last_publishable_trajectory_.reset(nullptr);
@@ -191,7 +191,7 @@ void StdPlanning::GenerateStopTrajectory(ADCTrajectory* trajectory_pb) {
 void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const trajectory_pb) {
         local_view_ = local_view;
         const double start_timestamp = Clock::NowInSeconds();
-
+ 
         // localization
         ADEBUG << "Get localization:" << local_view_.localization_estimate->DebugString();
 
@@ -237,7 +237,6 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         }
 
         // Update reference line provider and reset pull over if necessary
-        //@zyk:参考线提供者
         reference_line_provider_->UpdateVehicleState(vehicle_state);
 
         // planning is triggered by prediction data, but we can still use an estimated

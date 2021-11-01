@@ -101,7 +101,6 @@ bool ReferenceLineProvider::Start() {
                 AERROR << "ReferenceLineProvider has NOT been initiated.";
                 return false;
         }
-
         if (FLAGS_enable_reference_line_provider_thread) {
                 task_future_ = cyber::Async(&ReferenceLineProvider::GenerateThread, this);
         }
@@ -167,6 +166,7 @@ void ReferenceLineProvider::GenerateThread() {
                 constexpr int32_t kSleepTime = 50; // milliseconds
                 cyber::SleepFor(std::chrono::milliseconds(kSleepTime));
                 double start_time = Clock::NowInSeconds();
+                //StdPlanning::RunOnce()调用了UpdateRoutingResponse(const routing::RoutingResponse &routing)后，继续
                 if (!has_routing_) {
                         AERROR << "Routing is not ready.";
                         continue;

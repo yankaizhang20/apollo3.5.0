@@ -577,7 +577,7 @@ double Path::GetSFromIndex(const InterpolatedIndex& index) const {
         }
         return accumulated_s_[index.id] + index.offset;
 }
-//@zyk:先通过last_point_index_找到s所在path_points_的区间范围，然后用二分法找到离s最近的path_point_和相差距离
+//@brief 找到离s最近的path_point_
 InterpolatedIndex Path::GetIndexFromS(double s) const {
         if (s <= 0.0) {
                 return {0, 0.0};
