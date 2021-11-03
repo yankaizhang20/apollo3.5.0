@@ -26,46 +26,46 @@ namespace apollo {
 namespace cyber {
 
 class Time {
- public:
-  static const Time MAX;
-  static const Time MIN;
-  Time() {}
-  explicit Time(uint64_t nanoseconds);
-  explicit Time(int nanoseconds);
-  explicit Time(double seconds);
-  Time(uint32_t seconds, uint32_t nanoseconds);
-  Time(const Time& other);
-  Time& operator=(const Time& other);
-  ~Time() {}
+    public:
+        static const Time MAX;
+        static const Time MIN;
+        Time() {}
+        explicit Time(uint64_t nanoseconds);
+        explicit Time(int nanoseconds);
+        explicit Time(double seconds);
+        Time(uint32_t seconds, uint32_t nanoseconds);
+        Time(const Time& other);
+        Time& operator=(const Time& other);
+        ~Time() {}
 
-  static Time Now();
-  static Time MonoTime();
-  static void SleepUntil(const Time& time);
+        static Time Now();
+        static Time MonoTime();
+        static void SleepUntil(const Time& time);
 
-  double ToSecond() const;
-  uint64_t ToNanosecond() const;
-  std::string ToString() const;
-  bool IsZero() const;
+        double ToSecond() const;
+        uint64_t ToNanosecond() const;
+        std::string ToString() const;
+        bool IsZero() const;
 
-  Duration operator-(const Time& rhs) const;
-  Time operator+(const Duration& rhs) const;
-  Time operator-(const Duration& rhs) const;
-  Time& operator+=(const Duration& rhs);
-  Time& operator-=(const Duration& rhs);
-  bool operator==(const Time& rhs) const;
-  bool operator!=(const Time& rhs) const;
-  bool operator>(const Time& rhs) const;
-  bool operator<(const Time& rhs) const;
-  bool operator>=(const Time& rhs) const;
-  bool operator<=(const Time& rhs) const;
+        Duration operator-(const Time& rhs) const;
+        Time operator+(const Duration& rhs) const;
+        Time operator-(const Duration& rhs) const;
+        Time& operator+=(const Duration& rhs);
+        Time& operator-=(const Duration& rhs);
+        bool operator==(const Time& rhs) const;
+        bool operator!=(const Time& rhs) const;
+        bool operator>(const Time& rhs) const;
+        bool operator<(const Time& rhs) const;
+        bool operator>=(const Time& rhs) const;
+        bool operator<=(const Time& rhs) const;
 
- private:
-  uint64_t nanoseconds_ = 0;
+    private:
+        uint64_t nanoseconds_ = 0;
 };
 
 std::ostream& operator<<(std::ostream& os, const Time& rhs);
 
-}  // namespace cyber
-}  // namespace apollo
+} // namespace cyber
+} // namespace apollo
 
-#endif  // CYBER_TIME_TIME_H_
+#endif // CYBER_TIME_TIME_H_
