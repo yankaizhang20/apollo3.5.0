@@ -21,17 +21,15 @@
 
 #include "cyber/class_loader/class_loader.h"
 #include "cyber/component/timer_component.h"
-
 #include "modules/canbus/proto/chassis.pb.h"
 #include "modules/common/monitor_log/monitor_log_buffer.h"
+#include "modules/common/util/util.h"
+#include "modules/control/controller/controller_agent.h"
 #include "modules/control/proto/control_cmd.pb.h"
 #include "modules/control/proto/control_conf.pb.h"
 #include "modules/control/proto/pad_msg.pb.h"
 #include "modules/localization/proto/localization.pb.h"
 #include "modules/planning/proto/planning.pb.h"
-
-#include "modules/common/util/util.h"
-#include "modules/control/controller/controller_agent.h"
 
 /**
  * @namespace apollo::control
@@ -49,77 +47,71 @@ using apollo::cyber::Writer;
  * pad data to compute throttle, brake and steer values.
  */
 class ControlComponent final : public apollo::cyber::TimerComponent {
-  friend class ControlTestBase;
+        friend class ControlTestBase;
 
- public:
-  ControlComponent();
-  bool Init() override;
+    public:
+        ControlComponent();
+        bool Init() override;
 
-  bool Proc() override;
+        bool Proc() override;
 
-  struct LocalView {
-    canbus::Chassis chassis;
-    planning::ADCTrajectory trajectory;
-    localization::LocalizationEstimate localization;
-  };
+        struct LocalView {
+                canbus::Chassis chassis;
+                planning::ADCTrajectory trajectory;
+                localization::LocalizationEstimate localization;
+        };
 
- private:
-  // Upon receiving pad message
-  void OnPad(const std::shared_ptr<apollo::control::PadMessage> &pad);
+    private:
+        // Upon receiving pad message
+        void OnPad(const std::shared_ptr<apollo::control::PadMessage> &pad);
 
-  void OnChassis(const std::shared_ptr<apollo::canbus::Chassis> &chassis);
+        void OnChassis(const std::shared_ptr<apollo::canbus::Chassis> &chassis);
 
-  void OnPlanning(
-      const std::shared_ptr<apollo::planning::ADCTrajectory> &trajectory);
+        void OnPlanning(const std::shared_ptr<apollo::planning::ADCTrajectory> &trajectory);
 
-  void OnLocalization(
-      const std::shared_ptr<apollo::localization::LocalizationEstimate>
-          &localization);
+        void OnLocalization(const std::shared_ptr<apollo::localization::LocalizationEstimate> &localization);
 
-  // Upon receiving monitor message
-  void OnMonitor(
-      const apollo::common::monitor::MonitorMessage &monitor_message);
+        // Upon receiving monitor message
+        void OnMonitor(const apollo::common::monitor::MonitorMessage &monitor_message);
 
-  common::Status ProduceControlCommand(
-      apollo::control::ControlCommand *control_command);
-  common::Status CheckInput(LocalView *local_view);
-  common::Status CheckTimestamp(const LocalView &local_view);
-  common::Status CheckPad();
+        common::Status ProduceControlCommand(apollo::control::ControlCommand *control_command);
+        common::Status CheckInput(LocalView *local_view);
+        common::Status CheckTimestamp(const LocalView &local_view);
+        common::Status CheckPad();
 
- private:
-  double init_time_ = 0.0;
+    private:
+        double init_time_ = 0.0;
 
-  localization::LocalizationEstimate latest_localization_;
-  canbus::Chassis latest_chassis_;
-  planning::ADCTrajectory latest_trajectory_;
-  PadMessage pad_msg_;
+        localization::LocalizationEstimate latest_localization_;
+        canbus::Chassis latest_chassis_;
+        planning::ADCTrajectory latest_trajectory_;
+        PadMessage pad_msg_;
 
-  ControllerAgent controller_agent_;
+        ControllerAgent controller_agent_;
 
-  bool estop_ = false;
-  std::string estop_reason_;
-  bool pad_received_ = false;
+        bool estop_ = false;
+        std::string estop_reason_;
+        bool pad_received_ = false;
 
-  unsigned int status_lost_ = 0;
-  unsigned int status_sanity_check_failed_ = 0;
-  unsigned int total_status_lost_ = 0;
-  unsigned int total_status_sanity_check_failed_ = 0;
+        unsigned int status_lost_ = 0;
+        unsigned int status_sanity_check_failed_ = 0;
+        unsigned int total_status_lost_ = 0;
+        unsigned int total_status_sanity_check_failed_ = 0;
 
-  ControlConf control_conf_;
+        ControlConf control_conf_;
 
-  std::mutex mutex_;
+        std::mutex mutex_;
 
-  std::shared_ptr<Reader<apollo::canbus::Chassis>> chassis_reader_;
-  std::shared_ptr<Reader<apollo::control::PadMessage>> pad_msg_reader_;
-  std::shared_ptr<Reader<apollo::localization::LocalizationEstimate>>
-      localization_reader_;
-  std::shared_ptr<Reader<apollo::planning::ADCTrajectory>> trajectory_reader_;
-  std::shared_ptr<Writer<apollo::control::ControlCommand>> control_cmd_writer_;
-  common::monitor::MonitorLogBuffer monitor_logger_buffer_;
+        std::shared_ptr<Reader<apollo::canbus::Chassis>> chassis_reader_;
+        std::shared_ptr<Reader<apollo::control::PadMessage>> pad_msg_reader_;
+        std::shared_ptr<Reader<apollo::localization::LocalizationEstimate>> localization_reader_;
+        std::shared_ptr<Reader<apollo::planning::ADCTrajectory>> trajectory_reader_;
+        std::shared_ptr<Writer<apollo::control::ControlCommand>> control_cmd_writer_;
+        common::monitor::MonitorLogBuffer monitor_logger_buffer_;
 
-  LocalView local_view_;
+        LocalView local_view_;
 };
 
 CYBER_REGISTER_COMPONENT(ControlComponent)
-}  // namespace control
-}  // namespace apollo
+} // namespace control
+} // namespace apollo
