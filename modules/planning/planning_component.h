@@ -41,7 +41,6 @@ class PlanningComponent final
     : public cyber::Component<prediction::PredictionObstacles, canbus::Chassis, localization::LocalizationEstimate> {
     public:
         PlanningComponent() = default;
-
         ~PlanningComponent() = default;
 
     public:
@@ -71,7 +70,7 @@ class PlanningComponent final
         relative_map::MapMsg relative_map_;               //@zyk:地图信息
 
         LocalView local_view_; //@zyk:综合信息
-        //@zyk:规划器
+        //@zyk:规划器   
         std::unique_ptr<PlanningBase> planning_base_;   //@zyk:planning_base_ = std::unique_ptr<PlanningBase>(new StdPlanning());
         //@zyk:配置文件
         PlanningConfig config_; //@zyk:这个PlanningConfig是从proto生成的数据结构
