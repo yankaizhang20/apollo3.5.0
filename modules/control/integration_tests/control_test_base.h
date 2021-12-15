@@ -23,13 +23,12 @@
 #include "modules/control/control_component.h"
 #include "modules/control/proto/control_cmd.pb.h"
 
-#define RUN_GOLDEN_TEST                                            \
-  {                                                                \
-    const ::testing::TestInfo *const test_info =                   \
-        ::testing::UnitTest::GetInstance()->current_test_info();   \
-    bool run_control_success = test_control(test_info->name(), 0); \
-    EXPECT_TRUE(run_control_success);                              \
-  }
+#define RUN_GOLDEN_TEST                                                                                               \
+        {                                                                                                             \
+                const ::testing::TestInfo *const test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
+                bool run_control_success = test_control(test_info->name(), 0);                                        \
+                EXPECT_TRUE(run_control_success);                                                                     \
+        }
 
 DECLARE_string(test_localization_file);
 DECLARE_string(test_pad_file);
@@ -46,20 +45,21 @@ namespace apollo {
 namespace control {
 
 class ControlTestBase : public ::testing::Test {
- public:
-  static void SetUpTestCase();
+    public:
+        static void SetUpTestCase();
 
-  virtual void SetUp();
+        virtual void SetUp();
 
-  bool test_control();
-  bool test_control(const std::string &test_case_name, int case_num);
+        bool test_control();
+        bool test_control(const std::string &test_case_name, int case_num);
 
- private:
-  void trim_control_command(apollo::control::ControlCommand *origin);
-  ControlCommand control_command_;
-  ControlComponent control_;
-  static uint32_t s_seq_num_;
+    private:
+        void trim_control_command(apollo::control::ControlCommand *origin);
+        
+        ControlCommand control_command_;
+        ControlComponent control_;
+        static uint32_t s_seq_num_;
 };
 
-}  // namespace control
-}  // namespace apollo
+} // namespace control
+} // namespace apollo
