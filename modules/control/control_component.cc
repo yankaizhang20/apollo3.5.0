@@ -54,7 +54,9 @@ bool ControlComponent::Init() {
         }
 
         cyber::ReaderConfig chassis_reader_config;
+        //FLAGS_chassis_topic="chassis"
         chassis_reader_config.channel_name = FLAGS_chassis_topic;
+        //FLAGS_FLAGS_chassis_pending_queue_size=10
         chassis_reader_config.pending_queue_size = FLAGS_chassis_pending_queue_size;
 
         chassis_reader_ = node_->CreateReader<Chassis>(chassis_reader_config, nullptr);
