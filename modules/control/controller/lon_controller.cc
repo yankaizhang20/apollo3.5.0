@@ -136,7 +136,7 @@ Status LonController::ComputeControlCommand(const localization::LocalizationEsti
 
         trajectory_message_ = planning_published_trajectory;
         if (!control_interpolation_) {
-                AERROR << "Fail to initialize calibration table."; //校准表
+                AERROR << "Fail to initialize calibration table."; //校准表,用以计算油门
                 return Status(ErrorCode::CONTROL_COMPUTE_ERROR, "Fail to initialize calibration table.");
         }
 
@@ -163,7 +163,7 @@ Status LonController::ComputeControlCommand(const localization::LocalizationEsti
 
         double station_error_limit = lon_controller_conf.station_error_limit();
         double station_error_limited = 0.0;
-        if (FLAGS_enable_speed_station_preview) { //station_error_limite是什么
+        if (FLAGS_enable_speed_station_preview) { //true 计算位置误差是使用preview的点  
                 station_error_limited = 
                         common::math::Clamp(debug->preview_station_error(), -station_error_limit, station_error_limit);
         } else {
@@ -210,7 +210,7 @@ Status LonController::ComputeControlCommand(const localization::LocalizationEsti
                                   FLAGS_enable_slope_offset * debug->slope_offset_compensation();
         debug->set_is_full_stop(false);
         GetPathRemain(debug);
-
+        //停车判定
         if ((trajectory_message_->trajectory_type() == apollo::planning::ADCTrajectory::NORMAL) &&
             ((std::fabs(debug->preview_acceleration_reference()) <= FLAGS_max_acceleration_when_stopped &&
               std::fabs(debug->preview_speed_reference()) <= vehicle_param_.max_abs_speed_when_stopped()) ||
@@ -225,7 +225,8 @@ Status LonController::ComputeControlCommand(const localization::LocalizationEsti
         double calibration_value = 0.0;
         double acceleration_lookup =
                 (chassis->gear_location() == canbus::Chassis::GEAR_REVERSE) ? -acceleration_cmd : acceleration_cmd;
-        if (FLAGS_use_preview_speed_for_table) {
+        //根据目标速度、加速度。查表获取throttle和brake值
+        if (FLAGS_use_preview_speed_for_table) {   //false
                 calibration_value = control_interpolation_->Interpolate(
                         std::make_pair(debug->preview_speed_reference(), acceleration_lookup));
         } else {
@@ -336,6 +337,7 @@ void LonController::SetDigitalFilter(double ts, double cutoff_freq, common::Digi
 }
 
 // TODO(all): Refactor and simplify
+//计算剩余路程，根据轨迹点中速度和加速度判定停车条件，或者路程走完。
 void LonController::GetPathRemain(SimpleLongitudinalDebug *debug) {
         int stop_index = 0;
 

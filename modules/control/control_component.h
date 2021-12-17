@@ -46,6 +46,7 @@ using apollo::cyber::Writer;
  * @brief control module main class, it processes localization, chasiss, and
  * pad data to compute throttle, brake and steer values.
  */
+//@zyk 这个TimerComponent基类意味着Proc()会被周期性地调用
 class ControlComponent final : public apollo::cyber::TimerComponent {
         friend class ControlTestBase;
 
