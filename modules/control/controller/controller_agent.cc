@@ -34,6 +34,7 @@ using apollo::common::time::Clock;
 
 void ControllerAgent::RegisterControllers(const ControlConf *control_conf) {
         AINFO << "Only support MPC controller or Lat + Lon controllers as of now";
+        //control_conf->activate_controllers(): LAT_CONTROLLER、LON_CONTROLLER
         for (auto active_controller : control_conf->active_controllers()) {
                 switch (active_controller) {
                         case ControlConf::MPC_CONTROLLER:

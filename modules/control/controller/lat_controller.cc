@@ -260,7 +260,7 @@ Status LatController::ComputeControlCommand(const localization::LocalizationEsti
         auto vehicle_state = VehicleStateProvider::Instance();
 
         auto target_tracking_trajectory = *planning_published_trajectory;
-
+        //FLAGS_use_navigation_mode=false
         if (FLAGS_use_navigation_mode && FLAGS_enable_navigation_mode_position_update) {
                 auto time_stamp_diff =
                         planning_published_trajectory->header().timestamp_sec() - current_trajectory_timestamp_;
@@ -350,6 +350,7 @@ Status LatController::ComputeControlCommand(const localization::LocalizationEsti
         }
 
         // Add gain scheduler for higher speed steering
+        //FLAGS_enable_gain_scheduler=false
         if (FLAGS_enable_gain_scheduler) {
                 matrix_q_updated_(0, 0) =
                         matrix_q_(0, 0) * lat_err_interpolation_->Interpolate(vehicle_state->linear_velocity());
@@ -430,6 +431,7 @@ Status LatController::Reset() { return Status::OK(); }
 
 void LatController::UpdateState(SimpleLateralDebug *debug) {
         auto vehicle_state = VehicleStateProvider::Instance();
+        //FLAGS_use_navigation_mode=false
         if (FLAGS_use_navigation_mode) {
                 ComputeLateralErrors(0.0, 0.0, driving_orientation_, vehicle_state->linear_velocity(),
                                      vehicle_state->angular_velocity(), trajectory_analyzer_, debug);
