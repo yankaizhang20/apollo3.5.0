@@ -26,6 +26,7 @@ namespace planning {
 std::unique_ptr<Planner> StdPlannerDispatcher::DispatchPlanner() {
         PlanningConfig planning_config;
         apollo::common::util::GetProtoFromFile(FLAGS_planning_config_file, &planning_config);
+        //@zyk:open_space_planner_switchable, false planner=public_road planner
         if (FLAGS_open_space_planner_switchable) {
                 return planner_factory_.CreateObject(planning_config.standard_planning_config().planner_type(1));
         }

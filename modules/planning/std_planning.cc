@@ -192,7 +192,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         local_view_ = local_view;
         const double start_timestamp = Clock::NowInSeconds();
  
-        // localization
+        // localization 
         ADEBUG << "Get localization:" << local_view_.localization_estimate->DebugString();
 
         // chassis
@@ -371,7 +371,7 @@ Status StdPlanning::Plan(const double current_time_stamp, const std::vector<Traj
         if (FLAGS_enable_record_debug) {
                 ptr_debug->mutable_planning_data()->mutable_init_point()->CopyFrom(stitching_trajectory.back());
         }
-
+        //@zyk planner==public_road
         auto status = planner_->Plan(stitching_trajectory.back(), frame_.get());
 
         ptr_debug->mutable_planning_data()->set_front_clear_distance(EgoInfo::Instance()->front_clear_distance());

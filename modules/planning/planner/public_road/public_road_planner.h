@@ -19,14 +19,13 @@
 #include <string>
 
 #include "modules/common/proto/pnc_point.pb.h"
-#include "modules/planning/proto/planning.pb.h"
-#include "modules/planning/proto/planning_config.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/common/util/factory.h"
 #include "modules/planning/common/reference_line_info.h"
 #include "modules/planning/math/curve1d/quintic_polynomial_curve1d.h"
 #include "modules/planning/planner/planner.h"
+#include "modules/planning/proto/planning.pb.h"
+#include "modules/planning/proto/planning_config.pb.h"
 #include "modules/planning/reference_line/reference_line.h"
 #include "modules/planning/reference_line/reference_point.h"
 #include "modules/planning/tasks/task.h"
@@ -44,33 +43,31 @@ namespace planning {
  */
 
 class PublicRoadPlanner : public PlannerWithReferenceLine {
- public:
-  /**
-   * @brief Constructor
-   */
-  PublicRoadPlanner() = default;
+    public:
+        /**
+         * @brief Constructor
+         */
+        PublicRoadPlanner() = default;
 
-  /**
-   * @brief Destructor
-   */
-  virtual ~PublicRoadPlanner() = default;
+        /**
+         * @brief Destructor
+         */
+        virtual ~PublicRoadPlanner() = default;
 
-  virtual void Stop() {}
+        virtual void Stop() {}
 
-  std::string Name() override { return "PUBLIC_ROAD"; }
+        std::string Name() override { return "PUBLIC_ROAD"; }
 
-  common::Status Init(const PlanningConfig& config) override;
+        common::Status Init(const PlanningConfig& config) override;
 
-  /**
-   * @brief Override function Plan in parent class Planner.
-   * @param planning_init_point The trajectory point where planning starts.
-   * @param frame Current planning frame.
-   * @return OK if planning succeeds; error otherwise.
-   */
-  apollo::common::Status Plan(
-      const common::TrajectoryPoint& planning_init_point,
-      Frame* frame) override;
+        /**
+         * @brief Override function Plan in parent class Planner.
+         * @param planning_init_point The trajectory point where planning starts.
+         * @param frame Current planning frame.
+         * @return OK if planning succeeds; error otherwise.
+         */
+        apollo::common::Status Plan(const common::TrajectoryPoint& planning_init_point, Frame* frame) override;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
