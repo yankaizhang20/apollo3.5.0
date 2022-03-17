@@ -20,9 +20,8 @@
 #include <set>
 #include <unordered_map>
 
-#include "modules/planning/proto/planning_config.pb.h"
-
 #include "modules/common/status/status.h"
+#include "modules/planning/proto/planning_config.pb.h"
 #include "modules/planning/scenarios/scenario.h"
 
 namespace apollo {
@@ -30,52 +29,46 @@ namespace planning {
 namespace scenario {
 
 class ScenarioManager final {
- public:
-  ScenarioManager() = default;
+    public:
+        ScenarioManager() = default;
 
-  bool Init(const std::set<ScenarioConfig::ScenarioType>& supported_scenarios);
+        bool Init(const std::set<ScenarioConfig::ScenarioType>& supported_scenarios);
 
-  Scenario* mutable_scenario() { return current_scenario_.get(); }
+        Scenario* mutable_scenario() { return current_scenario_.get(); }
 
-  void Update(const common::TrajectoryPoint& ego_point, const Frame& frame);
+        void Update(const common::TrajectoryPoint& ego_point, const Frame& frame);
 
- private:
-  /**
-   * This function will wake up each scenario's observe function to cache
-   * necessary information in planning context, even when the scenario is not
-   * scheduled.
-   */
-  void Observe(const Frame& frame);
+    private:
+        /**
+         * This function will wake up each scenario's observe function to cache
+         * necessary information in planning context, even when the scenario is not
+         * scheduled.
+         */
+        void Observe(const Frame& frame);
 
-  std::unique_ptr<Scenario> CreateScenario(
-      ScenarioConfig::ScenarioType scenario_type);
+        std::unique_ptr<Scenario> CreateScenario(ScenarioConfig::ScenarioType scenario_type);
 
-  bool SelectChangeLaneScenario(const common::TrajectoryPoint& ego_point,
-                                const Frame& frame);
-  bool ReuseCurrentScenario(const common::TrajectoryPoint& ego_point,
+        bool SelectChangeLaneScenario(const common::TrajectoryPoint& ego_point, const Frame& frame);
+        bool ReuseCurrentScenario(const common::TrajectoryPoint& ego_point, const Frame& frame);
+        bool SelectScenario(const ScenarioConfig::ScenarioType type, const common::TrajectoryPoint& ego_point,
                             const Frame& frame);
-  bool SelectScenario(const ScenarioConfig::ScenarioType type,
-                      const common::TrajectoryPoint& ego_point,
-                      const Frame& frame);
 
-  void RegisterScenarios();
+        void RegisterScenarios();
 
-  ScenarioConfig::ScenarioType DecideCurrentScenario(
-      const common::TrajectoryPoint& ego_point, const Frame& frame);
+        ScenarioConfig::ScenarioType DecideCurrentScenario(const common::TrajectoryPoint& ego_point,
+                                                           const Frame& frame);
 
-  std::unordered_map<ScenarioConfig::ScenarioType, ScenarioConfig,
-                     std::hash<int>>
-      config_map_;
+        std::unordered_map<ScenarioConfig::ScenarioType, ScenarioConfig, std::hash<int>> config_map_;
 
-  std::unique_ptr<Scenario> current_scenario_;
-  ScenarioConfig::ScenarioType default_scenario_type_;
-  std::set<ScenarioConfig::ScenarioType> supported_scenarios_;
-  ScenarioContext scenario_context_;
+        std::unique_ptr<Scenario> current_scenario_;
+        ScenarioConfig::ScenarioType default_scenario_type_;
+        std::set<ScenarioConfig::ScenarioType> supported_scenarios_;
+        ScenarioContext scenario_context_;
 
-  // TODO(all): move to scenario conf later
-  const uint32_t conf_min_pass_s_distance_ = 3.0;  // meter
+        // TODO(all): move to scenario conf later
+        const uint32_t conf_min_pass_s_distance_ = 3.0; // meter
 };
 
-}  // namespace scenario
-}  // namespace planning
-}  // namespace apollo
+} // namespace scenario
+} // namespace planning
+} // namespace apollo

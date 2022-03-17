@@ -25,12 +25,11 @@
 #include <vector>
 
 #include "modules/common/proto/pnc_point.pb.h"
-#include "modules/planning/proto/planning.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/common/util/factory.h"
 #include "modules/planning/common/reference_line_info.h"
 #include "modules/planning/common/speed_profile_generator.h"
+#include "modules/planning/proto/planning.pb.h"
 #include "modules/planning/reference_line/reference_line.h"
 #include "modules/planning/reference_line/reference_point.h"
 #include "modules/planning/scenarios/scenario.h"
@@ -43,33 +42,29 @@ namespace scenario {
 namespace lane_follow {
 
 class LaneFollowStage : public Stage {
- public:
-  explicit LaneFollowStage(const ScenarioConfig::StageConfig& config);
+    public:
+        explicit LaneFollowStage(const ScenarioConfig::StageConfig& config);
 
-  StageStatus Process(const common::TrajectoryPoint& planning_init_point,
-                      Frame* frame) override;
+        StageStatus Process(const common::TrajectoryPoint& planning_init_point, Frame* frame) override;
 
-  common::Status PlanOnReferenceLine(
-      const common::TrajectoryPoint& planning_start_point, Frame* frame,
-      ReferenceLineInfo* reference_line_info);
+        common::Status PlanOnReferenceLine(const common::TrajectoryPoint& planning_start_point, Frame* frame,
+                                           ReferenceLineInfo* reference_line_info);
 
-  void GenerateFallbackPathProfile(const ReferenceLineInfo* reference_line_info,
-                                   PathData* path_data);
+        void GenerateFallbackPathProfile(const ReferenceLineInfo* reference_line_info, PathData* path_data);
 
-  common::SLPoint GetStopSL(const ObjectStop& stop_decision,
-                            const ReferenceLine& reference_line) const;
+        common::SLPoint GetStopSL(const ObjectStop& stop_decision, const ReferenceLine& reference_line) const;
 
-  void RecordObstacleDebugInfo(ReferenceLineInfo* reference_line_info);
+        void RecordObstacleDebugInfo(ReferenceLineInfo* reference_line_info);
 
-  void RecordDebugInfo(ReferenceLineInfo* reference_line_info,
-                       const std::string& name, const double time_diff_ms);
+        void RecordDebugInfo(ReferenceLineInfo* reference_line_info, const std::string& name,
+                             const double time_diff_ms);
 
- private:
-  ScenarioConfig config_;
-  std::unique_ptr<Stage> stage_;
+    private:
+        ScenarioConfig config_;
+        std::unique_ptr<Stage> stage_;
 };
 
-}  // namespace lane_follow
-}  // namespace scenario
-}  // namespace planning
-}  // namespace apollo
+} // namespace lane_follow
+} // namespace scenario
+} // namespace planning
+} // namespace apollo

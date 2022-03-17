@@ -25,11 +25,10 @@
 #include <string>
 #include <vector>
 
-#include "modules/planning/proto/planning_config.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/common/util/factory.h"
 #include "modules/planning/common/frame.h"
+#include "modules/planning/proto/planning_config.pb.h"
 #include "modules/planning/tasks/task.h"
 
 namespace apollo {
@@ -37,70 +36,65 @@ namespace planning {
 namespace scenario {
 
 class Stage {
- public:
-  enum StageStatus {
-    ERROR = 1,
-    READY = 2,
-    RUNNING = 3,
-    FINISHED = 4,
-  };
+    public:
+        enum StageStatus {
+                ERROR = 1,
+                READY = 2,
+                RUNNING = 3,
+                FINISHED = 4,
+        };
 
-  explicit Stage(const ScenarioConfig::StageConfig& config);
+        explicit Stage(const ScenarioConfig::StageConfig& config);
 
-  const ScenarioConfig::StageConfig& config() const { return config_; }
+        const ScenarioConfig::StageConfig& config() const { return config_; }
 
-  ScenarioConfig::StageType stage_type() const { return config_.stage_type(); }
+        ScenarioConfig::StageType stage_type() const { return config_.stage_type(); }
 
-  /**
-   * @brief Each stage does its business logic inside Process function.
-   * If the stage want to transite to a different stage after finish,
-   * it should set the type of 'next_stage_'.
-   */
-  virtual StageStatus Process(
-      const common::TrajectoryPoint& planning_init_point, Frame* frame) = 0;
+        /**
+         * @brief Each stage does its business logic inside Process function.
+         * If the stage want to transite to a different stage after finish,
+         * it should set the type of 'next_stage_'.
+         */
+        virtual StageStatus Process(const common::TrajectoryPoint& planning_init_point, Frame* frame) = 0;
 
-  /**
-   * @brief The sequence of tasks inside the stage. These tasks usually will be
-   * executed in order.
-   */
-  const std::vector<Task*>& TaskList() const { return task_list_; }
+        /**
+         * @brief The sequence of tasks inside the stage. These tasks usually will be
+         * executed in order.
+         */
+        const std::vector<Task*>& TaskList() const { return task_list_; }
 
-  const std::string& Name() const;
+        const std::string& Name() const;
 
-  template <typename T>
-  T* GetContextAs() {
-    return static_cast<T*>(context_);
-  }
+        template <typename T>
+        T* GetContextAs() {
+                return static_cast<T*>(context_);
+        }
 
-  void SetContext(void* context) { context_ = context; }
+        void SetContext(void* context) { context_ = context; }
 
-  Task* FindTask(TaskConfig::TaskType task_type) const;
+        Task* FindTask(TaskConfig::TaskType task_type) const;
 
-  ScenarioConfig::StageType NextStage() const { return next_stage_; }
+        ScenarioConfig::StageType NextStage() const { return next_stage_; }
 
- protected:
-  bool ExecuteTaskOnReferenceLine(
-      const common::TrajectoryPoint& planning_start_point, Frame* frame);
+    protected:
+        bool ExecuteTaskOnReferenceLine(const common::TrajectoryPoint& planning_start_point, Frame* frame);
 
-  std::map<TaskConfig::TaskType, std::unique_ptr<Task>> tasks_;
-  std::vector<Task*> task_list_;
-  ScenarioConfig::StageConfig config_;
-  ScenarioConfig::StageType next_stage_;
-  void* context_;
-  std::string name_;
+        std::map<TaskConfig::TaskType, std::unique_ptr<Task>> tasks_;
+        std::vector<Task*> task_list_;
+        ScenarioConfig::StageConfig config_;
+        ScenarioConfig::StageType next_stage_;
+        void* context_;
+        std::string name_;
 };
 
-#define DECLARE_STAGE(NAME, CONTEXT)                          \
-  class NAME : public Stage {                                 \
-   public:                                                    \
-    explicit NAME(const ScenarioConfig::StageConfig& config)  \
-        : Stage(config) {}                                    \
-    Stage::StageStatus Process(                               \
-        const common::TrajectoryPoint& planning_init_point,   \
-        Frame* frame) override;                               \
-    CONTEXT* GetContext() { return GetContextAs<CONTEXT>(); } \
-  }
+#define DECLARE_STAGE(NAME, CONTEXT)                                                                                   \
+        class NAME : public Stage {                                                                                    \
+            public:                                                                                                    \
+                explicit NAME(const ScenarioConfig::StageConfig& config) : Stage(config) {}                            \
+                Stage::StageStatus Process(const common::TrajectoryPoint& planning_init_point, Frame* frame) override; \
+                CONTEXT* GetContext() { return GetContextAs<CONTEXT>(); }                                              \
+        }
 
-}  // namespace scenario
-}  // namespace planning
-}  // namespace apollo
+} // namespace scenario
+} // namespace planning
+} // namespace apollo

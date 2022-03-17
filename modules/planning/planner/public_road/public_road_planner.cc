@@ -30,7 +30,10 @@ Status PublicRoadPlanner::Init(const PlanningConfig& config) {
         config_ = config;
         std::set<ScenarioConfig::ScenarioType> supported_scenarios;
         const auto& public_road_config = config_.standard_planning_config().planner_public_road_config();
-
+        /*scenario_type: LANE_FOLLOW
+        scenario_type: SIDE_PASS
+        scenario_type: STOP_SIGN_UNPROTECTED
+        */
         for (int i = 0; i < public_road_config.scenario_type_size(); ++i) {
                 const ScenarioConfig::ScenarioType scenario = public_road_config.scenario_type(i);
                 supported_scenarios.insert(scenario);
@@ -42,6 +45,7 @@ Status PublicRoadPlanner::Init(const PlanningConfig& config) {
 
 Status PublicRoadPlanner::Plan(const TrajectoryPoint& planning_start_point, Frame* frame) {
         DCHECK_NOTNULL(frame);
+        //更新场景，最后都是默认场景-跟车？
         scenario_manager_.Update(planning_start_point, *frame);
         scenario_ = scenario_manager_.mutable_scenario();
         auto result = scenario_->Process(planning_start_point, frame);
