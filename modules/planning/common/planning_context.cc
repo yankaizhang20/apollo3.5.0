@@ -29,9 +29,9 @@ PlanningContext::PlanningContext() {}
 void PlanningContext::Init() {}
 
 void PlanningContext::Clear() {
-  planning_status_.Clear();
-  scenario_info_ = {};
+        planning_status_.Clear();
+        scenario_info_ = {};
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

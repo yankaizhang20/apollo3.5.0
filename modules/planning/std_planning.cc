@@ -197,7 +197,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
 
         // chassis
         ADEBUG << "Get chassis:" << local_view_.chassis->DebugString();
-        //@zyk:车辆状态
+        //@zyk:将localization_estimate和chassis中的信息读取到VehicleStateProvider中
         Status status =
                 VehicleStateProvider::Instance()->Update(*local_view_.localization_estimate, *local_view_.chassis);
 
@@ -209,7 +209,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         // differs only a small amount (20ms). When the different is too large, the
         // estimation is invalid.
         //@zyk:estimate_current_vehicle_state==true
-        //@zyk:这是在消除系统误差
+        //@zyk:这是在消除系统误差，因为当前用的车辆状态不是当时的车辆状态，而是之前测出的
         if (FLAGS_estimate_current_vehicle_state && start_timestamp - vehicle_state.timestamp() < 0.020) {
                 auto future_xy = VehicleStateProvider::Instance()->EstimateFuturePosition(start_timestamp -
                                                                                           vehicle_state.timestamp());
@@ -217,9 +217,9 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
                 vehicle_state.set_y(future_xy.y());
                 vehicle_state.set_timestamp(start_timestamp);
         }
-
+        //@zyk:决策main_decision={cruise,lane-change,parking,stop,estop,not_ready,mission_complete}
         auto* not_ready = trajectory_pb->mutable_decision()->mutable_main_decision()->mutable_not_ready();
-
+        //@zyk车辆状态检测
         if (!status.ok() || !IsVehicleStateValid(vehicle_state)) {
                 std::string msg("Update VehicleStateProvider failed");
                 AERROR << msg;

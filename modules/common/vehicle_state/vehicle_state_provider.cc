@@ -61,6 +61,7 @@ Status VehicleStateProvider::Update(const localization::LocalizationEstimate &lo
         }
 
         constexpr double kEpsilon = 1e-6;
+        //@zyk:kappa是1/转弯半径，是曲率
         if (std::abs(vehicle_state_.linear_velocity()) < kEpsilon) {
                 vehicle_state_.set_kappa(0.0);
         } else {

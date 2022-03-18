@@ -51,15 +51,14 @@ namespace rss {
  */
 namespace situation {
 
-struct VehicleState
-{
-  ::rss::situation::Velocity velocity;
-  ::rss::situation::Dynamics dynamics;
-  ::rss::time::Duration responseTime{0.0};
-  bool hasPriority{false};
-  bool isInCorrectLane{false};
-  ::rss::situation::Distance distanceToEnterIntersection{std::numeric_limits<Distance>::max()};
-  ::rss::situation::Distance distanceToLeaveIntersection{std::numeric_limits<Distance>::max()};
+struct VehicleState {
+        ::rss::situation::Velocity velocity;
+        ::rss::situation::Dynamics dynamics;
+        ::rss::time::Duration responseTime{0.0};
+        bool hasPriority{false};
+        bool isInCorrectLane{false};
+        ::rss::situation::Distance distanceToEnterIntersection{std::numeric_limits<Distance>::max()};
+        ::rss::situation::Distance distanceToLeaveIntersection{std::numeric_limits<Distance>::max()};
 };
 
 } // namespace situation

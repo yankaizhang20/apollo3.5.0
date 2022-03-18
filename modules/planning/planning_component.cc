@@ -47,7 +47,7 @@ bool PlanningComponent::Init() {
         //@zyk:规划器初始化  TaskFactory工厂初始化
         //@zyk:config_中包含了四种planning的配置，支持的规划器，支持的场景类型等
         planning_base_->Init(config_);   
-        //TODO:use_sim_time=false "Use bag time in mock time mode."
+        //use_sim_time=false "Use bag time in mock time mode."
         if (FLAGS_use_sim_time) {
                 Clock::SetMode(Clock::MOCK);
         }

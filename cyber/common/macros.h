@@ -57,6 +57,8 @@ typename std::enable_if<!HasShutdown<T>::value>::type CallShutdown(T *instance) 
 3.实例要一直存在，所以实例的指针应当是静态的，以便下次调用接口时可以访问到该实例
 4.多线程安全，用std::call_once
 5.记得写清理函数
+6.std::nothrow 专用于new后面用于在构造失败时不要抛出异常，而是返回空指针
+7.函数内的静态变量只初始化一次
 */
 #define DECLARE_SINGLETON(classname)                                                              \
     public:                                                                                       \
