@@ -65,13 +65,13 @@ LaneWaypoint PncMap::ToLaneWaypoint(const routing::LaneWaypoint &waypoint) const
         return LaneWaypoint(lane, waypoint.s());
 }
 
+//@zyk:look_forward_time_sec==8
 double PncMap::LookForwardDistance(double velocity) {
         auto forward_distance = velocity * FLAGS_look_forward_time_sec;
-
+        //@zyk:look_forward_short_distance==180  look_forward_long_distance==250
         if (forward_distance > FLAGS_look_forward_short_distance) {
                 return FLAGS_look_forward_long_distance;
         }
-
         return FLAGS_look_forward_short_distance;
 }
 

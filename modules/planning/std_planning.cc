@@ -142,7 +142,7 @@ Status StdPlanning::InitFrame(const uint32_t sequence_num, const TrajectoryPoint
         DCHECK_EQ(reference_lines.size(), segments.size());
 
         auto forword_limit = hdmap::PncMap::LookForwardDistance(vehicle_state.linear_velocity());
-
+        //look_backward_distance==30
         for (auto& ref_line : reference_lines) {
                 if (!ref_line.Shrink(Vec2d(vehicle_state.x(), vehicle_state.y()), FLAGS_look_backward_distance,
                                      forword_limit)) {
@@ -243,9 +243,9 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         // cycle time for stitching
         //@zyk:规划被预测数据触发，但我们仍然可以使用估计的循环时间来拼接
         const double planning_cycle_time = 1.0 / FLAGS_planning_loop_rate;
-
         std::vector<TrajectoryPoint> stitching_trajectory;
         std::string replan_reason;
+        //这个stitching_trajectory是为了利用上一次的规划结果
         stitching_trajectory =
                 TrajectoryStitcher::ComputeStitchingTrajectory(vehicle_state, start_timestamp, planning_cycle_time,
                                                                last_publishable_trajectory_.get(), &replan_reason);
@@ -255,7 +255,6 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         bool update_ego_info = EgoInfo::Instance()->Update(stitching_trajectory.back(), vehicle_state);
         //@zyk:初始化帧
         status = InitFrame(frame_num, stitching_trajectory.back(), start_timestamp, vehicle_state, trajectory_pb);
-
         if (update_ego_info && status.ok()) {
                 EgoInfo::Instance()->CalculateFrontObstacleClearDistance(frame_->obstacles());
         }
@@ -266,6 +265,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         trajectory_pb->mutable_latency_stats()->set_init_frame_time_ms(Clock::NowInSeconds() - start_timestamp);
         if (!status.ok() || !update_ego_info) {
                 AERROR << status.ToString();
+                //publish_estop==false
                 if (FLAGS_publish_estop) {
                         // Because the function "Control::ProduceControlCommand()" checks the
                         // "estop" signal with the following line (Line 170 in control.cc):
@@ -290,7 +290,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
                 FrameHistory::Instance()->Add(n, std::move(frame_));
                 return;
         }
-
+        //TODO:
         for (auto& ref_line_info : *frame_->mutable_reference_line_info()) {
                 TrafficDecider traffic_decider;
                 traffic_decider.Init(traffic_rule_configs_);

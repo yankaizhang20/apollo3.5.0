@@ -54,7 +54,7 @@ void PlanningBase::FillPlanningPb(const double timestamp, ADCTrajectory* const t
         // TODO(all): integrate reverse gear
         trajectory_pb->set_gear(canbus::Chassis::GEAR_DRIVE);
         trajectory_pb->mutable_routing_header()->CopyFrom(local_view_.routing->header());
-
+        //use_planning_fallback==true
         if (FLAGS_use_planning_fallback && trajectory_pb->trajectory_point_size() == 0) {
                 SetFallbackTrajectory(trajectory_pb);
         }

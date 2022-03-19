@@ -91,6 +91,7 @@ void TrajectoryStitcher::TransformLastPublishedTrajectory(const double x_diff, c
 std::vector<TrajectoryPoint> TrajectoryStitcher::ComputeStitchingTrajectory(
         const VehicleState& vehicle_state, const double current_timestamp, const double planning_cycle_time,
         const PublishableTrajectory* prev_trajectory, std::string* replan_reason) {
+        //enable_trajecstory_stitcher==true
         if (!FLAGS_enable_trajectory_stitcher) {
                 *replan_reason = "stitch is disabled by gflag.";
                 return ComputeReinitStitchingTrajectory(vehicle_state);
@@ -150,7 +151,7 @@ std::vector<TrajectoryPoint> TrajectoryStitcher::ComputeStitchingTrajectory(
         auto lat_diff = frenet_sd.second;
 
         ADEBUG << "Control lateral diff: " << lat_diff << ", longitudinal diff: " << lon_diff;
-
+        //replan_lateral_distance_threshold==0.5
         if (std::fabs(lat_diff) > FLAGS_replan_lateral_distance_threshold) {
                 std::string msg(
                         "the distance between matched point and actual position is too "
@@ -160,7 +161,7 @@ std::vector<TrajectoryPoint> TrajectoryStitcher::ComputeStitchingTrajectory(
                 *replan_reason = msg;
                 return ComputeReinitStitchingTrajectory(vehicle_state);
         }
-
+        //replan_longitudinal_distance_threshold==2.5
         if (std::fabs(lon_diff) > FLAGS_replan_longitudinal_distance_threshold) {
                 std::string msg(
                         "the distance between matched point and actual position is too "

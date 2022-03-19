@@ -31,113 +31,101 @@ namespace planning {
 
 using common::TrajectoryPoint;
 
-DiscretizedTrajectory::DiscretizedTrajectory(
-    const std::vector<TrajectoryPoint>& trajectory_points)
+DiscretizedTrajectory::DiscretizedTrajectory(const std::vector<TrajectoryPoint>& trajectory_points)
     : std::vector<TrajectoryPoint>(trajectory_points) {
-  CHECK(!trajectory_points.empty())
-      << "trajectory_points should NOT be empty()";
+        CHECK(!trajectory_points.empty()) << "trajectory_points should NOT be empty()";
 }
 
 DiscretizedTrajectory::DiscretizedTrajectory(const ADCTrajectory& trajectory) {
-  assign(trajectory.trajectory_point().begin(),
-         trajectory.trajectory_point().end());
+        assign(trajectory.trajectory_point().begin(), trajectory.trajectory_point().end());
 }
 
-TrajectoryPoint DiscretizedTrajectory::Evaluate(
-    const double relative_time) const {
-  auto comp = [](const TrajectoryPoint& p, const double relative_time) {
-    return p.relative_time() < relative_time;
-  };
+TrajectoryPoint DiscretizedTrajectory::Evaluate(const double relative_time) const {
+        auto comp = [](const TrajectoryPoint& p, const double relative_time) {
+                return p.relative_time() < relative_time;
+        };
 
-  auto it_lower = std::lower_bound(begin(), end(), relative_time, comp);
+        auto it_lower = std::lower_bound(begin(), end(), relative_time, comp);
 
-  if (it_lower == begin()) {
-    return front();
-  } else if (it_lower == end()) {
-    AWARN << "When evaluate trajectory, relative_time(" << relative_time
-          << ") is too large";
-    return back();
-  }
-  return common::math::InterpolateUsingLinearApproximation(
-      *(it_lower - 1), *it_lower, relative_time);
+        if (it_lower == begin()) {
+                return front();
+        } else if (it_lower == end()) {
+                AWARN << "When evaluate trajectory, relative_time(" << relative_time << ") is too large";
+                return back();
+        }
+        return common::math::InterpolateUsingLinearApproximation(*(it_lower - 1), *it_lower, relative_time);
 }
 
-size_t DiscretizedTrajectory::QueryLowerBoundPoint(
-    const double relative_time) const {
-  CHECK(!empty());
+size_t DiscretizedTrajectory::QueryLowerBoundPoint(const double relative_time) const {
+        CHECK(!empty());
 
-  if (relative_time >= back().relative_time()) {
-    return size() - 1;
-  }
-  auto func = [](const TrajectoryPoint& tp, const double relative_time) {
-    return tp.relative_time() < relative_time;
-  };
-  auto it_lower = std::lower_bound(begin(), end(), relative_time, func);
-  return std::distance(begin(), it_lower);
+        if (relative_time >= back().relative_time()) {
+                return size() - 1;
+        }
+        auto func = [](const TrajectoryPoint& tp, const double relative_time) {
+                return tp.relative_time() < relative_time;
+        };
+        auto it_lower = std::lower_bound(begin(), end(), relative_time, func);
+        return std::distance(begin(), it_lower);
 }
 
-size_t DiscretizedTrajectory::QueryNearestPoint(
-    const common::math::Vec2d& position) const {
-  double dist_sqr_min = std::numeric_limits<double>::max();
-  size_t index_min = 0;
-  for (size_t i = 0; i < size(); ++i) {
-    const common::math::Vec2d curr_point(data()[i].path_point().x(),
-                                         data()[i].path_point().y());
+size_t DiscretizedTrajectory::QueryNearestPoint(const common::math::Vec2d& position) const {
+        double dist_sqr_min = std::numeric_limits<double>::max();
+        size_t index_min = 0;
+        for (size_t i = 0; i < size(); ++i) {
+                const common::math::Vec2d curr_point(data()[i].path_point().x(), data()[i].path_point().y());
 
-    const double dist_sqr = curr_point.DistanceSquareTo(position);
-    if (dist_sqr < dist_sqr_min) {
-      dist_sqr_min = dist_sqr;
-      index_min = i;
-    }
-  }
-  return index_min;
+                const double dist_sqr = curr_point.DistanceSquareTo(position);
+                if (dist_sqr < dist_sqr_min) {
+                        dist_sqr_min = dist_sqr;
+                        index_min = i;
+                }
+        }
+        return index_min;
 }
 
-size_t DiscretizedTrajectory::QueryNearestPointWithBuffer(
-    const common::math::Vec2d& position, const double buffer) const {
-  double dist_sqr_min = std::numeric_limits<double>::max();
-  size_t index_min = 0;
-  for (size_t i = 0; i < size(); ++i) {
-    const common::math::Vec2d curr_point(data()[i].path_point().x(),
-                                         data()[i].path_point().y());
+size_t DiscretizedTrajectory::QueryNearestPointWithBuffer(const common::math::Vec2d& position,
+                                                          const double buffer) const {
+        double dist_sqr_min = std::numeric_limits<double>::max();
+        size_t index_min = 0;
+        for (size_t i = 0; i < size(); ++i) {
+                const common::math::Vec2d curr_point(data()[i].path_point().x(), data()[i].path_point().y());
 
-    const double dist_sqr = curr_point.DistanceSquareTo(position);
-    if (dist_sqr < dist_sqr_min + buffer) {
-      dist_sqr_min = dist_sqr;
-      index_min = i;
-    }
-  }
-  return index_min;
+                const double dist_sqr = curr_point.DistanceSquareTo(position);
+                if (dist_sqr < dist_sqr_min + buffer) {
+                        dist_sqr_min = dist_sqr;
+                        index_min = i;
+                }
+        }
+        return index_min;
 }
 
-void DiscretizedTrajectory::AppendTrajectoryPoint(
-    const TrajectoryPoint& trajectory_point) {
-  if (!empty()) {
-    CHECK_GT(trajectory_point.relative_time(), back().relative_time());
-  }
-  push_back(trajectory_point);
+void DiscretizedTrajectory::AppendTrajectoryPoint(const TrajectoryPoint& trajectory_point) {
+        if (!empty()) {
+                CHECK_GT(trajectory_point.relative_time(), back().relative_time());
+        }
+        push_back(trajectory_point);
 }
 
-const TrajectoryPoint& DiscretizedTrajectory::TrajectoryPointAt(
-    const size_t index) const {
-  CHECK_LT(index, NumOfPoints());
-  return data()[index];
+const TrajectoryPoint& DiscretizedTrajectory::TrajectoryPointAt(const size_t index) const {
+        CHECK_LT(index, NumOfPoints());
+        return data()[index];
 }
 
 TrajectoryPoint DiscretizedTrajectory::StartPoint() const {
-  CHECK(!empty());
-  return front();
+        CHECK(!empty());
+        return front();
 }
 
 double DiscretizedTrajectory::GetTemporalLength() const {
-  CHECK(!empty());
-  return back().relative_time() - front().relative_time();
+        CHECK(!empty());
+        return back().relative_time() - front().relative_time();
 }
 
 double DiscretizedTrajectory::GetSpatialLength() const {
-  CHECK(!empty());
-  return back().path_point().s() - front().path_point().s();
+        CHECK(!empty());
+        return back().path_point().s() - front().path_point().s();
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
