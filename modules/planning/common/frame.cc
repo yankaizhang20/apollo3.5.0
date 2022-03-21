@@ -152,7 +152,7 @@ bool Frame::CreateReferenceLineInfo(const std::list<ReferenceLine> &reference_li
                 ++ref_line_iter;
                 ++segments_iter;
         }
-
+        //@zyk:enable_change_lane_decider==false
         if (FLAGS_enable_change_lane_decider && !change_lane_decider_.Apply(&reference_line_info_)) {
                 AERROR << "Failed to apply change lane decider";
                 return false;
@@ -314,6 +314,7 @@ Status Frame::Init(const std::list<ReferenceLine> &reference_lines, const std::l
 
 Status Frame::InitForOpenSpace() { return InitFrameData(); }
 
+//@zyk:初始化hdmap_、vehicle_state、障碍物、
 Status Frame::InitFrameData() {
         hdmap_ = hdmap::HDMapUtil::BaseMapPtr();
         CHECK_NOTNULL(hdmap_);
@@ -329,7 +330,7 @@ Status Frame::InitFrameData() {
         // lag_predictor_->GetLaggedPrediction(
         //    local_view_.prediction_obstacles.get());
         //}
-
+        //@zyk align_prediction_time==false
         if (FLAGS_align_prediction_time) {
                 auto prediction = *(local_view_.prediction_obstacles);
                 AlignPredictionTime(vehicle_state_.timestamp(), &prediction);
@@ -338,6 +339,7 @@ Status Frame::InitFrameData() {
         for (auto &ptr : Obstacle::CreateObstacles(*local_view_.prediction_obstacles)) {
                 AddObstacle(*ptr);
         }
+        //enable_collision_detection==false
         if (FLAGS_enable_collision_detection && planning_start_point_.v() < 1e-3) {
                 const auto *collision_obstacle = FindCollisionObstacle();
                 if (collision_obstacle != nullptr) {

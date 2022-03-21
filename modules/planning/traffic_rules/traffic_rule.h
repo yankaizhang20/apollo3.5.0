@@ -20,26 +20,24 @@
 
 #pragma once
 
-#include "modules/planning/proto/traffic_rule_config.pb.h"
-
 #include "modules/planning/common/frame.h"
 #include "modules/planning/common/reference_line_info.h"
+#include "modules/planning/proto/traffic_rule_config.pb.h"
 
 namespace apollo {
 namespace planning {
 
 class TrafficRule {
- public:
-  explicit TrafficRule(const TrafficRuleConfig& config) : config_(config) {}
-  virtual ~TrafficRule() = default;
-  virtual TrafficRuleConfig::RuleId Id() const { return config_.rule_id(); }
-  const TrafficRuleConfig& GetConfig() const { return config_; }
-  virtual common::Status ApplyRule(Frame* const frame,
-                         ReferenceLineInfo* const reference_line_info) = 0;
+    public:
+        explicit TrafficRule(const TrafficRuleConfig& config) : config_(config) {}
+        virtual ~TrafficRule() = default;
+        virtual TrafficRuleConfig::RuleId Id() const { return config_.rule_id(); }
+        const TrafficRuleConfig& GetConfig() const { return config_; }
+        virtual common::Status ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info) = 0;
 
- protected:
-  TrafficRuleConfig config_;
+    protected:
+        TrafficRuleConfig config_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

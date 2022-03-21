@@ -76,9 +76,11 @@ bool TrafficDecider::Init(const TrafficRuleConfigs &config) {
         return true;
 }
 
+//@zyk:根据交通规则，给reference_line_info设置必要的停止点
 void TrafficDecider::BuildPlanningTarget(ReferenceLineInfo *reference_line_info) {
         double min_s = std::numeric_limits<double>::infinity();
         StopPoint stop_point;
+        //@zyk：找到最近的虚拟障碍物，和障碍物类型hard,soft
         for (const auto *obstacle : reference_line_info->path_decision()->obstacles().Items()) {
                 if (obstacle->IsVirtual() && obstacle->HasLongitudinalDecision() &&
                     obstacle->LongitudinalDecision().has_stop() && obstacle->PerceptionSLBoundary().start_s() < min_s) {
@@ -104,15 +106,20 @@ void TrafficDecider::BuildPlanningTarget(ReferenceLineInfo *reference_line_info)
         if (min_s != std::numeric_limits<double>::infinity()) {
                 const auto &vehicle_config = common::VehicleConfigHelper::Instance()->GetConfig();
                 double front_edge_to_center = vehicle_config.vehicle_param().front_edge_to_center();
+                //virtual_stop_wall_length=0.1m 虚拟停止墙长度
                 stop_point.set_s(min_s - front_edge_to_center + FLAGS_virtual_stop_wall_length / 2.0);
                 reference_line_info->SetStopPoint(stop_point);
         }
 }
 
+/*@zyk创建各种交通规则对象，并应用每个交通规则（ApplyRule）
+*/
 Status TrafficDecider::Execute(Frame *frame, ReferenceLineInfo *reference_line_info) {
         CHECK_NOTNULL(frame);
         CHECK_NOTNULL(reference_line_info);
-
+        /*@zyk:backside_vehicle&&change_lane&&cross_walk&&destination&&keep_clear&&pull_over&&reference_line_end
+        &&rerouting&&signal_light
+        */
         for (const auto &rule_config : rule_configs_.config()) {
                 if (!rule_config.enabled()) {
                         ADEBUG << "Rule " << rule_config.rule_id() << " not enabled";
@@ -126,7 +133,7 @@ Status TrafficDecider::Execute(Frame *frame, ReferenceLineInfo *reference_line_i
                 rule->ApplyRule(frame, reference_line_info);
                 ADEBUG << "Applied rule " << TrafficRuleConfig::RuleId_Name(rule_config.rule_id());
         }
-
+        //@zyk:将各种交通规则产生的停车点加到reference_line_info
         BuildPlanningTarget(reference_line_info);
         return Status::OK();
 }

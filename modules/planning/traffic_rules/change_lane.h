@@ -31,37 +31,34 @@ namespace planning {
  * @brief This class defines rule-based lane change behaviors for the ADC.
  */
 class ChangeLane : public TrafficRule {
- public:
-  explicit ChangeLane(const TrafficRuleConfig& config);
-  virtual ~ChangeLane() = default;
+    public:
+        explicit ChangeLane(const TrafficRuleConfig& config);
+        virtual ~ChangeLane() = default;
 
-  common::Status ApplyRule(Frame* const frame,
-                           ReferenceLineInfo* const reference_line_info);
+        common::Status ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info);
 
- private:
-  /**
-   * @brief This function will filter obstacles based on change lane strategy.
-   **/
-  bool FilterObstacles(ReferenceLineInfo* reference_line_info);
-  /**
-   * @brief This function will extend the prediction of the guard obstacle to
-   *guard lane change action. Due to the ST path may drive on the forward lane
-   *first, then slowly move to the target lane when making lane change, we need
-   *to make sure the vehicle is aware that it actually occupies the target lane,
-   *even when it is not on the target lane yet.
-   **/
-  bool CreateGuardObstacle(const ReferenceLineInfo* reference_line_info,
-                           Obstacle* obstacle);
+    private:
+        /**
+         * @brief This function will filter obstacles based on change lane strategy.
+         **/
+        bool FilterObstacles(ReferenceLineInfo* reference_line_info);
+        /**
+         * @brief This function will extend the prediction of the guard obstacle to
+         *guard lane change action. Due to the ST path may drive on the forward lane
+         *first, then slowly move to the target lane when making lane change, we need
+         *to make sure the vehicle is aware that it actually occupies the target lane,
+         *even when it is not on the target lane yet.
+         **/
+        bool CreateGuardObstacle(const ReferenceLineInfo* reference_line_info, Obstacle* obstacle);
 
-  /**
-   * @brief create overtake decision for the give path obstacle
-   */
-  ObjectDecisionType CreateOvertakeDecision(const ReferenceLine& reference_line,
-                                            const Obstacle* obstacle) const;
+        /**
+         * @brief create overtake decision for the give path obstacle
+         */
+        ObjectDecisionType CreateOvertakeDecision(const ReferenceLine& reference_line, const Obstacle* obstacle) const;
 
-  std::vector<const Obstacle*> guard_obstacles_;
-  std::vector<const Obstacle*> overtake_obstacles_;
+        std::vector<const Obstacle*> guard_obstacles_;
+        std::vector<const Obstacle*> overtake_obstacles_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

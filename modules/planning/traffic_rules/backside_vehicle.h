@@ -26,21 +26,19 @@ namespace apollo {
 namespace planning {
 
 class BacksideVehicle : public TrafficRule {
- public:
-  explicit BacksideVehicle(const TrafficRuleConfig& config);
-  virtual ~BacksideVehicle() = default;
+    public:
+        explicit BacksideVehicle(const TrafficRuleConfig& config);
+        virtual ~BacksideVehicle() = default;
 
-  common::Status ApplyRule(Frame* const frame,
-                           ReferenceLineInfo* const reference_line_info);
+        common::Status ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info);
 
- private:
-  /**
-   * @brief When the reference line info indicates that there is no lane change,
-   * use lane keeping strategy for back side vehicles.
-   */
-  void MakeLaneKeepingObstacleDecision(const SLBoundary& adc_sl_boundary,
-                                       PathDecision* path_decision);
+    private:
+        /**
+         * @brief When the reference line info indicates that there is no lane change,
+         * use lane keeping strategy for back side vehicles.
+         */
+        void MakeLaneKeepingObstacleDecision(const SLBoundary& adc_sl_boundary, PathDecision* path_decision);
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

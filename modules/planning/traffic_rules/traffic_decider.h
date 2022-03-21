@@ -21,10 +21,9 @@
 #pragma once
 
 #include "modules/common/proto/pnc_point.pb.h"
-#include "modules/planning/proto/traffic_rule_config.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/common/util/factory.h"
+#include "modules/planning/proto/traffic_rule_config.pb.h"
 #include "modules/planning/reference_line/reference_line.h"
 #include "modules/planning/traffic_rules/traffic_rule.h"
 
@@ -42,24 +41,22 @@ namespace planning {
  *  * Select the drivable reference line.
  */
 class TrafficDecider {
- public:
-  TrafficDecider() = default;
-  bool Init(const TrafficRuleConfigs &config);
-  virtual ~TrafficDecider() = default;
-  apollo::common::Status Execute(Frame *frame,
-                                 ReferenceLineInfo *reference_line_info);
+    public:
+        TrafficDecider() = default;
+        bool Init(const TrafficRuleConfigs &config);
+        virtual ~TrafficDecider() = default;
+        apollo::common::Status Execute(Frame *frame, ReferenceLineInfo *reference_line_info);
 
- private:
-  static apollo::common::util::Factory<
-      TrafficRuleConfig::RuleId, TrafficRule,
-      TrafficRule *(*)(const TrafficRuleConfig &config)>
-      s_rule_factory;
+    private:
+        static apollo::common::util::Factory<TrafficRuleConfig::RuleId, TrafficRule,
+                                             TrafficRule *(*)(const TrafficRuleConfig &config)>
+                s_rule_factory;
 
-  void RegisterRules();
-  void BuildPlanningTarget(ReferenceLineInfo *reference_line_info);
+        void RegisterRules();
+        void BuildPlanningTarget(ReferenceLineInfo *reference_line_info);
 
-  TrafficRuleConfigs rule_configs_;
+        TrafficRuleConfigs rule_configs_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
