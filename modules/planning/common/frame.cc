@@ -172,7 +172,7 @@ bool Frame::CreateReferenceLineInfo(const std::list<ReferenceLine> &reference_li
                 reference_line_info_.front().SetOffsetToOtherReferenceLine(offset);
                 reference_line_info_.back().SetOffsetToOtherReferenceLine(-offset);
         }
-
+        //TODO:
         bool has_valid_reference_line = false;
         for (auto &ref_info : reference_line_info_) {
                 if (!ref_info.Init(obstacles())) {
@@ -294,7 +294,7 @@ const Obstacle *Frame::CreateStaticVirtualObstacle(const std::string &id, const 
         }
         return ptr;
 }
-
+//@zyk:融合预测障碍物信息，参考线信息
 Status Frame::Init(const std::list<ReferenceLine> &reference_lines, const std::list<hdmap::RouteSegments> &segments,
                    const std::vector<routing::LaneWaypoint> &future_route_waypoints) {
         auto status = InitFrameData();
@@ -302,7 +302,7 @@ Status Frame::Init(const std::list<ReferenceLine> &reference_lines, const std::l
                 AERROR << "failed to init frame:" << status.ToString();
                 return status;
         }
-        if (!CreateReferenceLineInfo(reference_lines, segments)) {
+        if (!CreateReferenceLineInfo(reference_lines, segm  ents)) {
                 const std::string msg = "Failed to init reference line info.";
                 AERROR << msg;
                 return Status(ErrorCode::PLANNING_ERROR, msg);
