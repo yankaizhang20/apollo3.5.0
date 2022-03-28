@@ -28,17 +28,17 @@ namespace apollo {
 namespace planning {
 
 class STPoint : public common::math::Vec2d {
- public:
-  STPoint() = default;
-  STPoint(const double s, const double t);
-  explicit STPoint(const common::math::Vec2d& vec2d_point);
+    public:
+        STPoint() = default;
+        STPoint(const double s, const double t);
+        explicit STPoint(const common::math::Vec2d& vec2d_point);
 
-  double s() const;
-  double t() const;
-  void set_s(const double s);
-  void set_t(const double t);
-  std::string DebugString() const;
+        double s() const;
+        double t() const;
+        void set_s(const double s);
+        void set_t(const double t);
+        std::string DebugString() const;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

@@ -274,6 +274,7 @@ double Obstacle::MinRadiusStopDistance(const common::VehicleParam& vehicle_param
         return stop_distance;
 }
 
+//@zyk:构建障碍物在参考线上的边界框
 void Obstacle::BuildReferenceLineStBoundary(const ReferenceLine& reference_line, const double adc_start_s) {
         const auto& adc_param = VehicleConfigHelper::Instance()->GetConfig().vehicle_param();
         const double adc_width = adc_param.width();
@@ -304,6 +305,7 @@ void Obstacle::BuildReferenceLineStBoundary(const ReferenceLine& reference_line,
         }
 }
 
+//TODO:
 bool Obstacle::BuildTrajectoryStBoundary(const ReferenceLine& reference_line, const double adc_start_s,
                                          StBoundary* const st_boundary) {
         if (!IsValidObstacle(perception_obstacle_)) {
@@ -597,6 +599,7 @@ bool Obstacle::IsValidObstacle(const perception::PerceptionObstacle& perception_
                object_length > kMinObjectDimension;
 }
 
+//@zyk:检测障碍物是否阻碍车辆通过
 void Obstacle::CheckLaneBlocking(const ReferenceLine& reference_line) {
         if (!IsStatic()) {
                 is_lane_blocking_ = false;

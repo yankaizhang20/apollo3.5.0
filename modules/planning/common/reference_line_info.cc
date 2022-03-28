@@ -53,8 +53,7 @@ ReferenceLineInfo::ReferenceLineInfo(const common::VehicleState& vehicle_state,
 bool ReferenceLineInfo::Init(const std::vector<const Obstacle*>& obstacles) {
         const auto& param = VehicleConfigHelper::GetConfig().vehicle_param();
         // stitching point
-        //@zyk:adc_planning_point_为当前规划起点
-        const auto& path_point = adc_planning_point_.path_point();
+        const auto& path_point = adc_planning_point_.path_point(); //@zyk:adc_planning_point_为当前规划起点
         Vec2d position(path_point.x(), path_point.y());
         Vec2d vec_to_center((param.front_edge_to_center() - param.back_edge_to_center()) / 2.0,
                             (param.left_edge_to_center() - param.right_edge_to_center()) / 2.0);
@@ -76,7 +75,7 @@ bool ReferenceLineInfo::Init(const std::vector<const Obstacle*>& obstacles) {
                 AERROR << "Failed to get ADC boundary from box: " << box.DebugString();
                 return false;
         }
-        //TODO:
+        //@zyk:找到“障碍物”和path的重叠区域
         InitFirstOverlaps();
 
         if (sl_boundary_info_.adc_sl_boundary_.end_s() < 0 ||
@@ -129,6 +128,7 @@ bool ReferenceLineInfo::GetFirstOverlap(const std::vector<hdmap::PathOverlap>& p
         return overlap_min_s < kMaxOverlapRange;
 }
 
+//@zyk:直接从path类中读取重叠部分的s
 void ReferenceLineInfo::InitFirstOverlaps() {
         const auto& map_path = reference_line_.map_path();
 
@@ -271,7 +271,7 @@ Obstacle* ReferenceLineInfo::AddObstacle(const Obstacle* obstacle) {
                 AERROR << "failed to add obstacle " << obstacle->Id();
                 return nullptr;
         }
-
+        
         SLBoundary perception_sl;
         if (!reference_line_.GetSLBoundary(obstacle->PerceptionBoundingBox(), &perception_sl)) {
                 AERROR << "Failed to get sl boundary for obstacle: " << obstacle->Id();
@@ -293,6 +293,7 @@ Obstacle* ReferenceLineInfo::AddObstacle(const Obstacle* obstacle) {
                 ADEBUG << "NO build reference line st boundary. id:" << obstacle->Id();
         } else {
                 ADEBUG << "build reference line st boundary. id:" << obstacle->Id();
+                //@zyk:构建障碍物在参考线上的包围框
                 mutable_obstacle->BuildReferenceLineStBoundary(reference_line_,
                                                                sl_boundary_info_.adc_sl_boundary_.start_s());
 
@@ -305,7 +306,7 @@ Obstacle* ReferenceLineInfo::AddObstacle(const Obstacle* obstacle) {
 }
 
 bool ReferenceLineInfo::AddObstacles(const std::vector<const Obstacle*>& obstacles) {
-        if (FLAGS_use_multi_thread_to_add_obstacles) {
+        if (FLAGS_use_multi_thread_to_add_obstacles) {//@zyk:use_multi_thread_to_add_obstacles==false
                 std::vector<std::future<Obstacle*>> results;
                 for (const auto* obstacle : obstacles) {
                         results.push_back(cyber::Async(&ReferenceLineInfo::AddObstacle, this, obstacle));
