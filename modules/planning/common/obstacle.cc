@@ -290,7 +290,7 @@ void Obstacle::BuildReferenceLineStBoundary(const ReferenceLine& reference_line,
                 }
                 point_pairs.emplace_back(STPoint(start_s - adc_start_s, 0.0), STPoint(end_s - adc_start_s, 0.0));
                 point_pairs.emplace_back(STPoint(start_s - adc_start_s, FLAGS_st_max_t),
-                                         STPoint(end_s - adc_start_s, FLAGS_st_max_t));
+                                         STPoint(end_s - adc_start_s, FLAGS_st_max_t));//@zyk:st_max_t=8
                 reference_line_st_boundary_ = StBoundary(point_pairs);
         } else {
                 if (BuildTrajectoryStBoundary(reference_line, adc_start_s, &reference_line_st_boundary_)) {
@@ -372,12 +372,12 @@ bool Obstacle::BuildTrajectoryStBoundary(const ReferenceLine& reference_line, co
                 constexpr double kSkipLDistanceFactor = 0.4;
                 const double skip_l_distance =
                         (object_boundary.end_s() - object_boundary.start_s()) * kSkipLDistanceFactor + adc_width / 2.0;
-
+                //@zyk障碍物在参考线的左右两侧可以忽略
                 if (std::fmin(object_boundary.start_l(), object_boundary.end_l()) > skip_l_distance ||
                     std::fmax(object_boundary.start_l(), object_boundary.end_l()) < -skip_l_distance) {
                         continue;
                 }
-
+                //@zyk障碍物在参考线后面也可以忽略
                 if (object_boundary.end_s() < 0) { // skip if behind reference line
                         continue;
                 }
@@ -392,7 +392,7 @@ bool Obstacle::BuildTrajectoryStBoundary(const ReferenceLine& reference_line, co
                 const double delta_t = second_traj_point.relative_time() - first_traj_point.relative_time();
                 double low_s = std::max(object_boundary.start_s() - adc_half_length, 0.0);
                 bool has_low = false;
-                double high_s = std::min(object_boundary.end_s() + adc_half_length, FLAGS_st_max_s);
+                double high_s = std::min(object_boundary.end_s() + adc_half_length, FLAGS_st_max_s);//@zyk st_max_s==100
                 bool has_high = false;
                 while (low_s + st_boundary_delta_s < high_s && !(has_low && has_high)) {
                         if (!has_low) {
