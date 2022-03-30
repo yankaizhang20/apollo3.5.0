@@ -46,7 +46,7 @@ void PathDecision::SetStBoundary(const std::string &id, const StBoundary &bounda
                 obstacle->SetStBoundary(boundary);
         }
 }
-
+//@zyk:这个函数和另一个还是很重要的
 bool PathDecision::AddLateralDecision(const std::string &tag, const std::string &object_id,
                                       const ObjectDecisionType &decision) {
         auto *obstacle = obstacles_.Find(object_id);

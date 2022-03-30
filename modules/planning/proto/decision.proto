@@ -92,6 +92,7 @@ message ObjectSidePass {
 message ObjectAvoid {
 }
 
+//@zyk决策类型：忽略、停止、跟随、超车、稍微偏离车道（当右前方有车辆压线时，可以向左偏离一下车道通过，而不是让车停止）
 message ObjectDecisionType {
   oneof object_tag {
     ObjectIgnore ignore = 1;

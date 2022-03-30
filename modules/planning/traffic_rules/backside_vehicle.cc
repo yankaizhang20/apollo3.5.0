@@ -36,24 +36,25 @@ void BacksideVehicle::MakeLaneKeepingObstacleDecision(const SLBoundary& adc_sl_b
                     adc_sl_boundary.end_s()) { // don't ignore such vehicles.
                         continue;
                 }
-
+                //@zyk:参考线上没有障碍物运动轨迹，忽略
                 if (obstacle->reference_line_st_boundary().IsEmpty()) {
                         path_decision->AddLongitudinalDecision("backside_vehicle/no-st-region", obstacle->Id(), ignore);
                         path_decision->AddLateralDecision("backside_vehicle/no-st-region", obstacle->Id(), ignore);
                         continue;
                 }
                 // Ignore the car comes from back of ADC
+                //@zyk:障碍物轨迹最近距离在车辆后面一个车长，忽略
                 if (obstacle->reference_line_st_boundary().min_s() < -adc_length_s) {
                         path_decision->AddLongitudinalDecision("backside_vehicle/st-min-s < adc", obstacle->Id(),
                                                                ignore);
                         path_decision->AddLateralDecision("backside_vehicle/st-min-s < adc", obstacle->Id(), ignore);
                         continue;
                 }
-
+                //@zyk：后车横向距离小于backside_lane_width==4时，看做是和自车同一车道
                 const double lane_boundary = config_.backside_vehicle().backside_lane_width();
                 if (obstacle->PerceptionSLBoundary().start_s() < adc_sl_boundary.end_s()) {
                         if (obstacle->PerceptionSLBoundary().start_l() > lane_boundary ||
-                            obstacle->PerceptionSLBoundary().end_l() < -lane_boundary) {
+                            obstacle->PerceptionSLBoundary().end_l() < -lane_boundary) {//@zyk不在同一车道，不能忽略这种障碍
                                 continue;
                         }
                         path_decision->AddLongitudinalDecision("backside_vehicle/sl < adc.end_s", obstacle->Id(),
