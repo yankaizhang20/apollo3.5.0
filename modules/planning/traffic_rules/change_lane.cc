@@ -36,7 +36,7 @@ constexpr double kMinGuardVehicleSpeed = 1.0;
 
 ChangeLane::ChangeLane(const TrafficRuleConfig& config) : TrafficRule(config) {}
 
-//@zyk:过滤掉了一些障碍物，剩下的放到了guard_obstacles_
+//@zyk:选择overtake_obstacles和first_guard_vehicle
 bool ChangeLane::FilterObstacles(ReferenceLineInfo* reference_line_info) {
         const auto& reference_line = reference_line_info->reference_line();
         const auto& adc_sl_boundary = reference_line_info->AdcSlBoundary();
@@ -44,14 +44,16 @@ bool ChangeLane::FilterObstacles(ReferenceLineInfo* reference_line_info) {
         const Obstacle* first_guard_vehicle = nullptr;
         constexpr double kGuardForwardDistance = 60;
         double max_s = 0.0;
-        const double min_overtake_time = config_.change_lane().min_overtake_time();
+        const double min_overtake_time = config_.change_lane().min_overtake_time();//@zyk:2s
         for (const auto* obstacle : path_decision->obstacles().Items()) {
                 if (!obstacle->HasTrajectory()) {
                         continue;
                 }
+                //@zyk:忽略车辆前方的障碍物
                 if (obstacle->PerceptionSLBoundary().start_s() > adc_sl_boundary.end_s()) {
                         continue;
                 }
+                //@zyk:将车辆后方一段距离的障碍物作为超车障碍
                 if (obstacle->PerceptionSLBoundary().end_s() <
                     adc_sl_boundary.start_s() - std::max(config_.change_lane().min_overtake_distance(),
                                                          obstacle->speed() * min_overtake_time)) {
@@ -71,6 +73,7 @@ bool ChangeLane::FilterObstacles(ReferenceLineInfo* reference_line_info) {
                 if (last_sl.s() < 0 || last_sl.s() > adc_sl_boundary.end_s() + kGuardForwardDistance) {
                         continue;
                 }
+                //@zyk:选择后方车辆未来轨迹最近的作为guard_vehicle
                 if (last_sl.s() > max_s) {
                         max_s = last_sl.s();
                         first_guard_vehicle = obstacle;
@@ -126,17 +129,18 @@ bool ChangeLane::CreateGuardObstacle(const ReferenceLineInfo* reference_line_inf
 
 Status ChangeLane::ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info) {
         // The reference line is not a change lane reference line, skip
-        //@zyk：判断车辆是否在当前车道上，在当前车道就不是换道的参考线
+        //@zyk：直行道，不需要换道
         if (reference_line_info->Lanes().IsOnSegment()) {
                 return Status::OK();
         }
-        //TODO:
+        //@zyk计算警示障碍物和超车障碍物
         guard_obstacles_.clear();
         overtake_obstacles_.clear();
         if (!FilterObstacles(reference_line_info)) {
                 return Status(common::PLANNING_ERROR, "Failed to filter obstacles");
         }
         //enable_guard_obstacle==true
+        //@zyk:创建警示障碍物类
         if (config_.change_lane().enable_guard_obstacle() && !guard_obstacles_.empty()) {
                 for (const auto obstacle : guard_obstacles_) {
                         auto* guard_obstacle = frame->Find(obstacle->Id());
@@ -145,7 +149,7 @@ Status ChangeLane::ApplyRule(Frame* const frame, ReferenceLineInfo* const refere
                         }
                 }
         }
-
+        //@zyk:创建超车标志
         if (!overtake_obstacles_.empty()) {
                 auto* path_decision = reference_line_info->path_decision();
                 const auto& reference_line = reference_line_info->reference_line();
