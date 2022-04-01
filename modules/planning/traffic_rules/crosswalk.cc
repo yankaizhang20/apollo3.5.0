@@ -56,12 +56,12 @@ Crosswalk::Crosswalk(const TrafficRuleConfig& config) : TrafficRule(config) {}
 Status Crosswalk::ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info) {
         CHECK_NOTNULL(frame);
         CHECK_NOTNULL(reference_line_info);
-
+        //@zyk:检查是否存在人行横道
         if (!FindCrosswalks(reference_line_info)) {
                 PlanningContext::MutablePlanningStatus()->clear_crosswalk();
                 return Status::OK();
         }
-
+        
         MakeDecisions(frame, reference_line_info);
         return Status::OK();
 }
@@ -69,7 +69,7 @@ Status Crosswalk::ApplyRule(Frame* const frame, ReferenceLineInfo* const referen
 void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const reference_line_info) {
         CHECK_NOTNULL(frame);
         CHECK_NOTNULL(reference_line_info);
-
+        //@zyk:下面是障碍物历史信息记录工作，用于记录障碍物的历史信息
         auto* mutable_crosswalk_status = PlanningContext::MutablePlanningStatus()->mutable_crosswalk();
 
         auto* path_decision = reference_line_info->path_decision();
@@ -85,12 +85,12 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                                    mutable_crosswalk_status->stop_time(i).obstacle_stop_timestamp()});
         }
         crosswalk_stop_timer.insert({mutable_crosswalk_status->crosswalk_id(), stop_times});
-
+        //@zyk:已经处理完的人行横道
         std::vector<std::string> finished_crosswalks;
         for (int i = 0; i < mutable_crosswalk_status->finished_crosswalk_size(); i++) {
                 finished_crosswalks.push_back(mutable_crosswalk_status->finished_crosswalk(i));
         }
-
+        //@zyk:处理人行横道
         const auto& reference_line = reference_line_info->reference_line();
         for (auto crosswalk_overlap : crosswalk_overlaps_) {
                 auto crosswalk_ptr =
@@ -98,6 +98,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                 std::string crosswalk_id = crosswalk_ptr->id().id();
 
                 // skip crosswalk if master vehicle body already passes the stop line
+                //@zyk：若车辆已经通过了停止线，则通过人行横道
                 if (adc_front_edge_s - crosswalk_overlap->end_s > config_.crosswalk().min_pass_s_distance()) {
                         if (mutable_crosswalk_status->has_crosswalk_id() &&
                             mutable_crosswalk_status->crosswalk_id() == crosswalk_id) {
@@ -112,6 +113,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                 }
 
                 // check if crosswalk already finished
+                //@zyk:检查是否处理完相应的人行横道
                 if (finished_crosswalks.end() !=
                     std::find(finished_crosswalks.begin(), finished_crosswalks.end(), crosswalk_id)) {
                         ADEBUG << "SKIP: crosswalk_id[" << crosswalk_id << "] crosswalk_end_s["
@@ -121,6 +123,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
 
                 std::vector<std::string> pedestrians;
                 for (const auto* obstacle : path_decision->obstacles().Items()) {
+                        //对于这个障碍物，是否应该停止
                         bool stop = CheckStopForObstacle(reference_line_info, crosswalk_ptr, *obstacle);
 
                         const std::string& obstacle_id = obstacle->Id();
@@ -150,6 +153,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                                                                    crosswalk_stop_timer[crosswalk_id][obstacle_id];
                                                 ADEBUG << "stop_time: obstacle_id[" << obstacle_id << "] stop_time["
                                                        << stop_time << "]";
+                                                //@zyk:行人或自行车的停止时间超过了最大的允许时间10s
                                                 if (stop_time >= config_.crosswalk().stop_timeout()) {
                                                         stop = false;
                                                 }
@@ -166,7 +170,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                                        << "] crosswalk_id[" << crosswalk_id << "]";
                         }
                 }
-
+                //@zyk:若有行人则减速
                 if (!pedestrians.empty()) {
                         // stop decision
                         double stop_deceleration =
@@ -178,7 +182,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                         }
                 }
         }
-
+        //@zyk:找到第一个做出停止决策的crosswalk
         double min_s = std::numeric_limits<double>::max();
         hdmap::PathOverlap* firsts_crosswalk_to_stop = nullptr;
         for (auto crosswalk_to_stop : crosswalks_to_stop) {
@@ -191,7 +195,7 @@ void Crosswalk::MakeDecisions(Frame* const frame, ReferenceLineInfo* const refer
                         min_s = crosswalk_to_stop.first->start_s;
                 }
         }
-
+        //@zyk:信息记录
         if (firsts_crosswalk_to_stop) {
                 // update CrosswalkStatus
                 std::string crosswalk = firsts_crosswalk_to_stop->object_id;

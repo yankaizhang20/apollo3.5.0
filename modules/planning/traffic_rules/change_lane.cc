@@ -84,7 +84,7 @@ bool ChangeLane::FilterObstacles(ReferenceLineInfo* reference_line_info) {
         }
         return true;
 }
-
+//@zyk:给障碍物增加预测轨迹
 bool ChangeLane::CreateGuardObstacle(const ReferenceLineInfo* reference_line_info, Obstacle* obstacle) {
         if (!obstacle || !obstacle->HasTrajectory()) {
                 return false;
@@ -172,10 +172,10 @@ ObjectDecisionType ChangeLane::CreateOvertakeDecision(const ReferenceLine& refer
         overtake.mutable_overtake()->set_distance_s(distance);
         double fence_s = obstacle->PerceptionSLBoundary().end_s() + distance;
         auto point = reference_line.GetReferencePoint(fence_s);
-        overtake.mutable_overtake()->set_time_buffer(config_.change_lane().min_overtake_time());
-        overtake.mutable_overtake()->set_distance_s(distance);
-        overtake.mutable_overtake()->set_fence_heading(point.heading());
-        overtake.mutable_overtake()->mutable_fence_point()->set_x(point.x());
+        overtake.mutable_overtake()->set_time_buffer(config_.change_lane().min_overtake_time()); 
+        overtake.mutable_overtake()->set_distance_s(distance);   //设置超车结束障碍物运动距离
+        overtake.mutable_overtake()->set_fence_heading(point.heading());   //设置超车结束的航向
+        overtake.mutable_overtake()->mutable_fence_point()->set_x(point.x());    //超车结束障碍物的位置
         overtake.mutable_overtake()->mutable_fence_point()->set_y(point.y());
         overtake.mutable_overtake()->mutable_fence_point()->set_z(0.0);
         return overtake;
