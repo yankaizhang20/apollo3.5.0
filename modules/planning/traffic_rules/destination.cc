@@ -17,9 +17,9 @@
 /**
  * @file
  **/
-#include <algorithm>
-
 #include "modules/planning/traffic_rules/destination.h"
+
+#include <algorithm>
 
 #include "modules/common/time/time.h"
 #include "modules/map/proto/map_lane.pb.h"
@@ -33,225 +33,218 @@ using apollo::common::Status;
 using apollo::common::time::Clock;
 using apollo::hdmap::HDMapUtil;
 
-Destination::Destination(const TrafficRuleConfig& config)
-    : TrafficRule(config) {}
+Destination::Destination(const TrafficRuleConfig& config) : TrafficRule(config) {}
 
-Status Destination::ApplyRule(Frame* frame,
-                              ReferenceLineInfo* const reference_line_info) {
-  CHECK_NOTNULL(frame);
-  CHECK_NOTNULL(reference_line_info);
+Status Destination::ApplyRule(Frame* frame, ReferenceLineInfo* const reference_line_info) {
+        CHECK_NOTNULL(frame);
+        CHECK_NOTNULL(reference_line_info);
 
-  if (!frame->is_near_destination()) {
-    return Status::OK();
-  }
+        if (!frame->is_near_destination()) {
+                return Status::OK();
+        }
 
-  const auto& routing = frame->local_view().routing;
+        const auto& routing = frame->local_view().routing;
+        //@zyk:判断是否到达终点
+        common::SLPoint dest_sl;
+        const auto& ref_line = reference_line_info->reference_line();
+        const auto& routing_end = *(routing->routing_request().waypoint().rbegin());
+        ref_line.XYToSL({routing_end.pose().x(), routing_end.pose().y()}, &dest_sl);
+        const auto& adc_sl = reference_line_info->AdcSlBoundary();
+        const auto& dest = PlanningContext::MutablePlanningStatus()->destination();
+        //@zyk:经过终点，但是要走几圈才能真正到达终点
+        if (adc_sl.start_s() > dest_sl.s() && !dest.has_passed_destination()) {
+                ADEBUG << "Destination at back, but we have not reached destination yet";
+                return Status::OK();
+        }
 
-  common::SLPoint dest_sl;
-  const auto& ref_line = reference_line_info->reference_line();
-  const auto& routing_end = *(routing->routing_request().waypoint().rbegin());
-  ref_line.XYToSL({routing_end.pose().x(), routing_end.pose().y()}, &dest_sl);
-  const auto& adc_sl = reference_line_info->AdcSlBoundary();
-  const auto& dest = PlanningContext::MutablePlanningStatus()->destination();
-  if (adc_sl.start_s() > dest_sl.s() && !dest.has_passed_destination()) {
-    ADEBUG << "Destination at back, but we have not reached destination yet";
-    return Status::OK();
-  }
+        BuildStopDecision(frame, reference_line_info);
 
-  BuildStopDecision(frame, reference_line_info);
-
-  return Status::OK();
+        return Status::OK();
 }
 
 /**
  * @brief: build stop decision
  */
-int Destination::BuildStopDecision(
-    Frame* frame, ReferenceLineInfo* const reference_line_info) {
-  CHECK_NOTNULL(frame);
-  CHECK_NOTNULL(reference_line_info);
+int Destination::BuildStopDecision(Frame* frame, ReferenceLineInfo* const reference_line_info) {
+        CHECK_NOTNULL(frame);
+        CHECK_NOTNULL(reference_line_info);
 
-  const auto& routing = frame->local_view().routing;
-  if (routing->routing_request().waypoint_size() < 2) {
-    AERROR << "routing_request has no end";
-    return -1;
-  }
+        const auto& routing = frame->local_view().routing;
+        if (routing->routing_request().waypoint_size() < 2) {
+                AERROR << "routing_request has no end";
+                return -1;
+        }
 
-  const auto* planning_status = PlanningContext::MutablePlanningStatus();
-  const auto& routing_end = *(routing->routing_request().waypoint().rbegin());
-  double dest_lane_s =
-      std::max(0.0, routing_end.s() - FLAGS_virtual_stop_wall_length -
-                        config_.destination().stop_distance());
+        const auto* planning_status = PlanningContext::MutablePlanningStatus();
+        const auto& routing_end = *(routing->routing_request().waypoint().rbegin());
+        double dest_lane_s =
+                std::max(0.0, routing_end.s() - FLAGS_virtual_stop_wall_length - config_.destination().stop_distance());
+        //@zyk:不允许靠边停车pull over，直接停在路上
+        if (planning_status->has_pull_over() && planning_status->pull_over().has_status() &&
+            planning_status->pull_over().status() == PullOverStatus::DISABLED) {
+                Stop(frame, reference_line_info, routing_end.id(), dest_lane_s);
+                ADEBUG << "destination: STOP at current lane. PULL-OVER disabled";
+                return 0;
+        }
 
-  if (planning_status->has_pull_over() &&
-      planning_status->pull_over().has_status() &&
-      planning_status->pull_over().status() == PullOverStatus::DISABLED) {
-    Stop(frame, reference_line_info, routing_end.id(), dest_lane_s);
-    ADEBUG << "destination: STOP at current lane. PULL-OVER disabled";
-    return 0;
-  }
+        common::PointENU dest_point;
+        if (CheckPullOver(reference_line_info, routing_end.id(), dest_lane_s, &dest_point)) {
+                if (planning_status->has_pull_over() && planning_status->pull_over().in_pull_over()) {
+                        PullOver(nullptr);
+                        ADEBUG << "destination: continue PULL OVER";
+                } else {
+                        PullOver(&dest_point);
+                        ADEBUG << "destination: PULL OVER";
+                }
+        } else {
+                Stop(frame, reference_line_info, routing_end.id(), dest_lane_s);
+                ADEBUG << "destination: STOP at current lane";
+        }
 
-  common::PointENU dest_point;
-  if (CheckPullOver(reference_line_info, routing_end.id(), dest_lane_s,
-                    &dest_point)) {
-    if (planning_status->has_pull_over() &&
-        planning_status->pull_over().in_pull_over()) {
-      PullOver(nullptr);
-      ADEBUG << "destination: continue PULL OVER";
-    } else {
-      PullOver(&dest_point);
-      ADEBUG << "destination: PULL OVER";
-    }
-  } else {
-    Stop(frame, reference_line_info, routing_end.id(), dest_lane_s);
-    ADEBUG << "destination: STOP at current lane";
-  }
-
-  return 0;
+        return 0;
 }
 
 /**
  * @brief: build on-lane stop decision upon arriving at destination
  */
-int Destination::Stop(Frame* const frame,
-                      ReferenceLineInfo* const reference_line_info,
-                      const std::string lane_id, const double lane_s) {
-  CHECK_NOTNULL(frame);
-  CHECK_NOTNULL(reference_line_info);
+int Destination::Stop(Frame* const frame, ReferenceLineInfo* const reference_line_info, const std::string lane_id,
+                      const double lane_s) {
+        CHECK_NOTNULL(frame);
+        CHECK_NOTNULL(reference_line_info);
 
-  const auto& reference_line = reference_line_info->reference_line();
+        const auto& reference_line = reference_line_info->reference_line();
 
-  // create virtual stop wall
-  std::string stop_wall_id = FLAGS_destination_obstacle_id;
-  auto* obstacle = frame->CreateStopObstacle(stop_wall_id, lane_id, lane_s);
-  if (!obstacle) {
-    AERROR << "Failed to create obstacle [" << stop_wall_id << "]";
-    return -1;
-  }
+        // create virtual stop wall
+        //@zyk:创建虚拟停止墙
+        std::string stop_wall_id = FLAGS_destination_obstacle_id;
+        auto* obstacle = frame->CreateStopObstacle(stop_wall_id, lane_id, lane_s);
+        if (!obstacle) {
+                AERROR << "Failed to create obstacle [" << stop_wall_id << "]";
+                return -1;
+        }
 
-  Obstacle* stop_wall = reference_line_info->AddObstacle(obstacle);
-  if (!stop_wall) {
-    AERROR << "Failed to create obstacle for: " << stop_wall_id;
-    return -1;
-  }
+        Obstacle* stop_wall = reference_line_info->AddObstacle(obstacle);
+        if (!stop_wall) {
+                AERROR << "Failed to create obstacle for: " << stop_wall_id;
+                return -1;
+        }
 
-  // build stop decision
-  const auto stop_wall_box = stop_wall->PerceptionBoundingBox();
-  if (!reference_line.IsOnLane(stop_wall_box.center())) {
-    ADEBUG << "destination point is not on lane";
-    return 0;
-  }
-  auto stop_point = reference_line.GetReferencePoint(
-      stop_wall->PerceptionSLBoundary().start_s() -
-      config_.destination().stop_distance());
+        // build stop decision
+        //@zyk: 将停止决策加入到PathDecision里
+        const auto stop_wall_box = stop_wall->PerceptionBoundingBox();
+        if (!reference_line.IsOnLane(stop_wall_box.center())) {
+                ADEBUG << "destination point is not on lane";
+                return 0;
+        }
+        auto stop_point = reference_line.GetReferencePoint(stop_wall->PerceptionSLBoundary().start_s() -
+                                                           config_.destination().stop_distance());
 
-  ObjectDecisionType stop;
-  auto stop_decision = stop.mutable_stop();
-  stop_decision->set_reason_code(StopReasonCode::STOP_REASON_DESTINATION);
-  stop_decision->set_distance_s(-config_.destination().stop_distance());
-  stop_decision->set_stop_heading(stop_point.heading());
-  stop_decision->mutable_stop_point()->set_x(stop_point.x());
-  stop_decision->mutable_stop_point()->set_y(stop_point.y());
-  stop_decision->mutable_stop_point()->set_z(0.0);
+        ObjectDecisionType stop;
+        auto stop_decision = stop.mutable_stop();
+        stop_decision->set_reason_code(StopReasonCode::STOP_REASON_DESTINATION);
+        stop_decision->set_distance_s(-config_.destination().stop_distance());
+        stop_decision->set_stop_heading(stop_point.heading());
+        stop_decision->mutable_stop_point()->set_x(stop_point.x());
+        stop_decision->mutable_stop_point()->set_y(stop_point.y());
+        stop_decision->mutable_stop_point()->set_z(0.0);
 
-  auto* path_decision = reference_line_info->path_decision();
-  path_decision->AddLongitudinalDecision(
-      TrafficRuleConfig::RuleId_Name(config_.rule_id()), stop_wall->Id(), stop);
+        auto* path_decision = reference_line_info->path_decision();
+        path_decision->AddLongitudinalDecision(TrafficRuleConfig::RuleId_Name(config_.rule_id()), stop_wall->Id(),
+                                               stop);
 
-  return 0;
+        return 0;
 }
 
 /**
  * @brief: check if adc will pull-over upon arriving destination
+ * @zyk:检查车辆是否能靠边停车
  */
-bool Destination::CheckPullOver(ReferenceLineInfo* const reference_line_info,
-                                const std::string& dest_lane_id,
-                                const double dest_lane_s,
-                                common::PointENU* dest_point) {
-  CHECK_NOTNULL(reference_line_info);
+bool Destination::CheckPullOver(ReferenceLineInfo* const reference_line_info, const std::string& dest_lane_id,
+                                const double dest_lane_s, common::PointENU* dest_point) {
+        CHECK_NOTNULL(reference_line_info);
 
-  if (!config_.destination().enable_pull_over()) {
-    return false;
-  }
+        if (!config_.destination().enable_pull_over()) {
+                return false;
+        }
 
-  const auto hdmap_ptr = HDMapUtil::BaseMapPtr();
-  if (!hdmap_ptr) {
-    AERROR << "Invalid HD Map.";
-    return false;
-  }
-  const auto dest_lane = hdmap_ptr->GetLaneById(hdmap::MakeMapId(dest_lane_id));
-  if (!dest_lane) {
-    AERROR << "Failed to find lane[" << dest_lane_id << "]";
-    return false;
-  }
+        const auto hdmap_ptr = HDMapUtil::BaseMapPtr();
+        if (!hdmap_ptr) {
+                AERROR << "Invalid HD Map.";
+                return false;
+        }
+        const auto dest_lane = hdmap_ptr->GetLaneById(hdmap::MakeMapId(dest_lane_id));
+        if (!dest_lane) {
+                AERROR << "Failed to find lane[" << dest_lane_id << "]";
+                return false;
+        }
 
-  // check if ChangeLane
-  bool change_lane = false;
-  const auto& segments = reference_line_info->Lanes();
-  if (segments.NextAction() != routing::FORWARD) {
-    change_lane = true;
-  }
+        // check if ChangeLane
+        bool change_lane = false;
+        const auto& segments = reference_line_info->Lanes();
+        if (segments.NextAction() != routing::FORWARD) {
+                change_lane = true;
+        }
 
-  // check dest OnLane
-  *dest_point = dest_lane->GetSmoothPoint(dest_lane_s);
-  common::SLPoint dest_sl;
-  const auto& reference_line = reference_line_info->reference_line();
-  if (!reference_line.XYToSL({dest_point->x(), dest_point->y()}, &dest_sl)) {
-    AERROR << "failed to project the dest point to the other reference line";
-    return false;
-  }
-  if (!change_lane && !reference_line.IsOnLane(dest_sl)) {
-    return false;
-  }
+        // check dest OnLane
+        *dest_point = dest_lane->GetSmoothPoint(dest_lane_s);
+        common::SLPoint dest_sl;
+        const auto& reference_line = reference_line_info->reference_line();
+        if (!reference_line.XYToSL({dest_point->x(), dest_point->y()}, &dest_sl)) {
+                AERROR << "failed to project the dest point to the other reference line";
+                return false;
+        }
+        if (!change_lane && !reference_line.IsOnLane(dest_sl)) {
+                return false;
+        }
 
-  // check dest within pull_over_plan_distance
-  double adc_front_edge_s = reference_line_info->AdcSlBoundary().end_s();
-  double distance_to_dest = dest_sl.s() - adc_front_edge_s;
-  ADEBUG << "adc_front_edge_s[" << adc_front_edge_s << "] distance_to_dest["
-         << distance_to_dest << "] dest_lane[" << dest_lane_id
-         << "] dest_lane_s[" << dest_lane_s << "]";
+        // check dest within pull_over_plan_distance
+        double adc_front_edge_s = reference_line_info->AdcSlBoundary().end_s();
+        double distance_to_dest = dest_sl.s() - adc_front_edge_s;
+        ADEBUG << "adc_front_edge_s[" << adc_front_edge_s << "] distance_to_dest[" << distance_to_dest << "] dest_lane["
+               << dest_lane_id << "] dest_lane_s[" << dest_lane_s << "]";
 
-  if (distance_to_dest > config_.destination().pull_over_plan_distance()) {
-    // to far, not sending pull-over yet
-    return false;
-  }
+        //@zyk:距离目的地还远，不用pull over
+        if (distance_to_dest > config_.destination().pull_over_plan_distance()) {
+                // to far, not sending pull-over yet
+                return false;
+        }
+        
+        // Disable pull-over for the rest route if ChangeLane and clost to dest
+        //@zyk：若换道并且和终点距离很近了，则剩下的路由不pull over
+        if (change_lane) {
+                auto* planning_status = PlanningContext::MutablePlanningStatus();
+                planning_status->clear_pull_over();
+                auto* pull_over = planning_status->mutable_pull_over();
+                pull_over->set_reason(PullOverStatus::DESTINATION);
+                pull_over->set_status(PullOverStatus::DISABLED);
+                pull_over->set_status_set_time(Clock::NowInSeconds());
 
-  // Disable pull-over for the rest route if ChangeLane and clost to dest
-  if (change_lane) {
-    auto* planning_status = PlanningContext::MutablePlanningStatus();
-    planning_status->clear_pull_over();
-    auto* pull_over = planning_status->mutable_pull_over();
-    pull_over->set_reason(PullOverStatus::DESTINATION);
-    pull_over->set_status(PullOverStatus::DISABLED);
-    pull_over->set_status_set_time(Clock::NowInSeconds());
+                return false;
+        }
 
-    return false;
-  }
-
-  return true;
+        return true;
 }
 
 /**
  * @brief: build pull-over decision upon arriving at destination
  */
 int Destination::PullOver(common::PointENU* const dest_point) {
-  auto* planning_status = PlanningContext::MutablePlanningStatus();
-  if (!planning_status->has_pull_over() ||
-      !planning_status->pull_over().in_pull_over()) {
-    planning_status->clear_pull_over();
-    auto* pull_over = planning_status->mutable_pull_over();
-    pull_over->set_in_pull_over(true);
-    pull_over->set_reason(PullOverStatus::DESTINATION);
-    pull_over->set_status_set_time(Clock::NowInSeconds());
+        auto* planning_status = PlanningContext::MutablePlanningStatus();
+        if (!planning_status->has_pull_over() || !planning_status->pull_over().in_pull_over()) {
+                planning_status->clear_pull_over();
+                auto* pull_over = planning_status->mutable_pull_over();
+                pull_over->set_in_pull_over(true);
+                pull_over->set_reason(PullOverStatus::DESTINATION);
+                pull_over->set_status_set_time(Clock::NowInSeconds());
 
-    if (dest_point) {
-      pull_over->mutable_inlane_dest_point()->set_x(dest_point->x());
-      pull_over->mutable_inlane_dest_point()->set_y(dest_point->y());
-    }
-  }
+                if (dest_point) {
+                        pull_over->mutable_inlane_dest_point()->set_x(dest_point->x());
+                        pull_over->mutable_inlane_dest_point()->set_y(dest_point->y());
+                }
+        }
 
-  return 0;
+        return 0;
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
