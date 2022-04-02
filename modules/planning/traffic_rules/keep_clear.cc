@@ -33,6 +33,7 @@ using apollo::hdmap::PathOverlap;
 
 KeepClear::KeepClear(const TrafficRuleConfig& config) : TrafficRule(config) {}
 
+//@zyk:禁停区有两类，一类是标准禁停区，另一类是交叉路口
 Status KeepClear::ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info) {
         CHECK_NOTNULL(frame);
         CHECK_NOTNULL(reference_line_info);
@@ -43,7 +44,6 @@ Status KeepClear::ApplyRule(Frame* const frame, ReferenceLineInfo* const referen
                         reference_line_info->reference_line().map_path().clear_area_overlaps();
                 for (const auto& keep_clear_overlap : keep_clear_overlaps) {
                         const auto obstacle_id = KEEP_CLEAR_VO_ID_PREFIX + keep_clear_overlap.object_id;
-
                         if (BuildKeepClearObstacle(frame, reference_line_info, obstacle_id, keep_clear_overlap.start_s,
                                                    keep_clear_overlap.end_s)) {
                                 ADEBUG << "KEEP_CLAER for keep_clear_zone[" << keep_clear_overlap.object_id << "] s["

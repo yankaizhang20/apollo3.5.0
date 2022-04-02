@@ -31,24 +31,21 @@ namespace planning {
  * This class creates a virtual obstacle for each clear area region.
  */
 class KeepClear : public TrafficRule {
- public:
-  explicit KeepClear(const TrafficRuleConfig& config);
-  virtual ~KeepClear() = default;
+    public:
+        explicit KeepClear(const TrafficRuleConfig& config);
+        virtual ~KeepClear() = default;
 
-  common::Status ApplyRule(Frame* const frame,
-                 ReferenceLineInfo* const reference_line_info);
+        common::Status ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info);
 
- private:
-  bool BuildKeepClearObstacle(Frame* const frame,
-                              ReferenceLineInfo* const reference_line_info,
-                              const std::string& virtual_obstacle_id,
-                              const double keep_clear_start_s,
-                              const double keep_clear_end_s);
- private:
-  static constexpr char const* const KEEP_CLEAR_VO_ID_PREFIX = "KC_";
-  static constexpr char const* const KEEP_CLEAR_JUNCTION_VO_ID_PREFIX =
-      "KC_JC_";
+    private:
+        bool BuildKeepClearObstacle(Frame* const frame, ReferenceLineInfo* const reference_line_info,
+                                    const std::string& virtual_obstacle_id, const double keep_clear_start_s,
+                                    const double keep_clear_end_s);
+
+    private:
+        static constexpr char const* const KEEP_CLEAR_VO_ID_PREFIX = "KC_";
+        static constexpr char const* const KEEP_CLEAR_JUNCTION_VO_ID_PREFIX = "KC_JC_";
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
