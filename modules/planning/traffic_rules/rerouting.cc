@@ -21,7 +21,6 @@
 #include "modules/planning/traffic_rules/rerouting.h"
 
 #include "modules/common/proto/pnc_point.pb.h"
-
 #include "modules/common/time/time.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/planning/common/planning_context.h"
@@ -35,92 +34,94 @@ using apollo::common::time::Clock;
 Rerouting::Rerouting(const TrafficRuleConfig& config) : TrafficRule(config) {}
 
 bool Rerouting::ChangeLaneFailRerouting() {
-  constexpr double kRerouteThresholdToEnd = 20.0;
-  for (const auto& ref_line_info : frame_->reference_line_info()) {
-    if (ref_line_info.ReachedDestination()
-        || ref_line_info.SDistanceToDestination() < kRerouteThresholdToEnd) {
-      return true;
-    }
-  }
-  const auto& segments = reference_line_info_->Lanes();
-  // 1. If current reference line is drive forward, no rerouting.
-  if (segments.NextAction() == routing::FORWARD) {
-    // if not current lane, do not check for rerouting
-    return true;
-  }
+        constexpr double kRerouteThresholdToEnd = 20.0;
+        //@zyk:到达目的地直接跳出
+        for (const auto& ref_line_info : frame_->reference_line_info()) {
+                if (ref_line_info.ReachedDestination() ||
+                    ref_line_info.SDistanceToDestination() < kRerouteThresholdToEnd) {
+                        return true;
+                }
+        }
+        const auto& segments = reference_line_info_->Lanes();
+        // 1. If current reference line is drive forward, no rerouting.
+        //@zyk:若当前参考线是直行道，则不进行重路由
+        if (segments.NextAction() == routing::FORWARD) {
+                // if not current lane, do not check for rerouting
+                return true;
+        }
 
-  // 2. If vehicle is not on current reference line yet, no rerouting
-  if (!segments.IsOnSegment()) {
-    return true;
-  }
+        // 2. If vehicle is not on current reference line yet, no rerouting
+        //@zyk：若车辆不在当前参考线，不进行重路由
+        if (!segments.IsOnSegment()) {
+                return true;
+        }
 
-  // 3. If current reference line can connect to next passage, no rerouting
-  if (segments.CanExit()) {
-    return true;
-  }
+        // 3. If current reference line can connect to next passage, no rerouting
+        //@zyk:若当前参考线可以通向另一段passage，则不进行重路由
+        if (segments.CanExit()) {
+                return true;
+        }
 
-  // 4. If the end of current passage region not appeared, no rerouting
-  const auto& route_end_waypoint = segments.RouteEndWaypoint();
-  if (!route_end_waypoint.lane) {
-    return true;
-  }
-  auto point = route_end_waypoint.lane->GetSmoothPoint(route_end_waypoint.s);
-  const auto& reference_line = reference_line_info_->reference_line();
-  common::SLPoint sl_point;
-  if (!reference_line.XYToSL({point.x(), point.y()}, &sl_point)) {
-    AERROR << "Failed to project point: " << point.ShortDebugString();
-    return false;
-  }
-  if (!reference_line.IsOnLane(sl_point)) {
-    return true;
-  }
-  // 5. If the end of current passage region is further than kPrepareRoutingTime
-  // * speed, no rerouting
-  double adc_s = reference_line_info_->AdcSlBoundary().end_s();
-  const auto vehicle_state = common::VehicleStateProvider::Instance();
-  double speed = vehicle_state->linear_velocity();
-  const double prepare_rerouting_time =
-      config_.rerouting().prepare_rerouting_time();
-  const double prepare_distance = speed * prepare_rerouting_time;
-  if (sl_point.s() > adc_s + prepare_distance) {
-    ADEBUG << "No need rerouting now because still can drive for time: "
-           << prepare_rerouting_time << " seconds";
-    return true;
-  }
-  // 6. Check if we have done rerouting before
-  auto* rerouting =
-      PlanningContext::MutablePlanningStatus()->mutable_rerouting();
-  if (rerouting == nullptr) {
-    AERROR << "rerouting is nullptr.";
-    return false;
-  }
-  double current_time = Clock::NowInSeconds();
-  if (rerouting->has_last_rerouting_time() &&
-      (current_time - rerouting->last_rerouting_time() <
-       config_.rerouting().cooldown_time())) {
-    ADEBUG << "Skip rerouting and wait for previous rerouting result";
-    return true;
-  }
-  if (!frame_->Rerouting()) {
-    AERROR << "Failed to send rerouting request";
-    return false;
-  }
+        // 4. If the end of current passage region not appeared, no rerouting
+        //@zyk:若当前passage的终点不在当前参考线，则不进行重路由
+        const auto& route_end_waypoint = segments.RouteEndWaypoint();
+        if (!route_end_waypoint.lane) {
+                return true;
+        }
+        auto point = route_end_waypoint.lane->GetSmoothPoint(route_end_waypoint.s);
+        const auto& reference_line = reference_line_info_->reference_line();
+        common::SLPoint sl_point;
+        if (!reference_line.XYToSL({point.x(), point.y()}, &sl_point)) {
+                AERROR << "Failed to project point: " << point.ShortDebugString();
+                return false;
+        }
+        if (!reference_line.IsOnLane(sl_point)) {
+                return true;
+        }
+        // 5. If the end of current passage region is further than kPrepareRoutingTime
+        // * speed, no rerouting
+        //@zyk:当前路由终点比kPrepareRoutingTime*speed远，不需要重路由
+        double adc_s = reference_line_info_->AdcSlBoundary().end_s();
+        const auto vehicle_state = common::VehicleStateProvider::Instance();
+        double speed = vehicle_state->linear_velocity();
+        const double prepare_rerouting_time = config_.rerouting().prepare_rerouting_time();
+        const double prepare_distance = speed * prepare_rerouting_time;
+        if (sl_point.s() > adc_s + prepare_distance) {
+                ADEBUG << "No need rerouting now because still can drive for time: " << prepare_rerouting_time
+                       << " seconds";
+                return true;
+        }
+        // 6. Check if we have done rerouting before
+        //@zyk:检查是否做过重路由
+        auto* rerouting = PlanningContext::MutablePlanningStatus()->mutable_rerouting();
+        if (rerouting == nullptr) {
+                AERROR << "rerouting is nullptr.";
+                return false;
+        }
+        double current_time = Clock::NowInSeconds();
+        if (rerouting->has_last_rerouting_time() &&
+            (current_time - rerouting->last_rerouting_time() < config_.rerouting().cooldown_time())) {
+                ADEBUG << "Skip rerouting and wait for previous rerouting result";
+                return true;
+        }
+        if (!frame_->Rerouting()) {
+                AERROR << "Failed to send rerouting request";
+                return false;
+        }
 
-  // store last rerouting time.
-  rerouting->set_last_rerouting_time(current_time);
-  return true;
+        // store last rerouting time.
+        rerouting->set_last_rerouting_time(current_time);
+        return true;
 }
 
-Status Rerouting::ApplyRule(Frame* const frame,
-                            ReferenceLineInfo* const reference_line_info) {
-  frame_ = frame;
-  reference_line_info_ = reference_line_info;
-  if (!ChangeLaneFailRerouting()) {
-    return Status(common::PLANNING_ERROR,
-                  "In un-successful lane change case, rerouting failed");
-  }
-  return Status::OK();
+Status Rerouting::ApplyRule(Frame* const frame, ReferenceLineInfo* const reference_line_info) {
+        frame_ = frame;
+        reference_line_info_ = reference_line_info;
+        if (!ChangeLaneFailRerouting()) {
+                return Status(common::PLANNING_ERROR, "In un-successful lane change case, rerouting failed");
+        }
+        return Status::OK();
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
