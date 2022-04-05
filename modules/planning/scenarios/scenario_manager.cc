@@ -71,6 +71,7 @@ std::unique_ptr<Scenario> ScenarioManager::CreateScenario(ScenarioConfig::Scenar
         return ptr;
 }
 
+//@zyk:读取各个场景配置
 void ScenarioManager::RegisterScenarios() {
         CHECK(Scenario::LoadConfig(FLAGS_scenario_lane_follow_config_file, &config_map_[ScenarioConfig::LANE_FOLLOW]));
         CHECK(Scenario::LoadConfig(FLAGS_scenario_side_pass_config_file, &config_map_[ScenarioConfig::SIDE_PASS]));
@@ -95,6 +96,7 @@ bool ScenarioManager::ReuseCurrentScenario(const common::TrajectoryPoint& ego_po
         return current_scenario_->IsTransferable(*current_scenario_, ego_point, frame);
 }
 
+//@zyk:判断是够可以由当前场景转换到选中的场景
 bool ScenarioManager::SelectScenario(const ScenarioConfig::ScenarioType type, const common::TrajectoryPoint& ego_point,
                                      const Frame& frame) {
         if (current_scenario_->scenario_type() == type) {
@@ -160,11 +162,13 @@ void ScenarioManager::Observe(const Frame& frame) {
         ADEBUG << "Crosswalk: " << PlanningContext::GetScenarioInfo()->next_crosswalk_overlap.object_id;
 }
 
+//@zyk:确定当前处于哪个场景
 void ScenarioManager::Update(const common::TrajectoryPoint& ego_point, const Frame& frame) {
         CHECK(!frame.reference_line_info().empty());
         Observe(frame);
         // change lane case, currently default to LANE_FOLLOW in change lane case.
         // TODO(all) implement change lane scenario.
+        //@zyk:若当前为换道情况，则创建LANE_FOLLOW场景
         if (SelectChangeLaneScenario(ego_point, frame)) {
                 ADEBUG << "Use change lane scenario (temporarily use LANE_FOLLOW)";
                 return;
@@ -172,6 +176,7 @@ void ScenarioManager::Update(const common::TrajectoryPoint& ego_point, const Fra
 
         // non change lane case
         std::set<ScenarioConfig::ScenarioType> rejected_scenarios;
+        //@zyk当前场景非默认场景，并且可以继续保持当前场景，则继续使用当前场景
         if (current_scenario_->scenario_type() != default_scenario_type_ && ReuseCurrentScenario(ego_point, frame)) {
                 ADEBUG << "reuse current scenario: " << current_scenario_->Name();
                 return;
@@ -179,6 +184,7 @@ void ScenarioManager::Update(const common::TrajectoryPoint& ego_point, const Fra
         rejected_scenarios.insert(current_scenario_->scenario_type());
 
         // prefer to use first encountered overlaps/objects
+        //@zyk:根据第一个overlap的类型选择当前场景
         const auto& reference_line_info = frame.reference_line_info().front();
         const auto& first_overlaps = reference_line_info.FirstEncounteredOverlaps();
         for (const auto& overlap : first_overlaps) {
@@ -228,6 +234,7 @@ void ScenarioManager::Update(const common::TrajectoryPoint& ego_point, const Fra
         }
 
         // finally use default transferrable scenario.
+        //@zyk:没有选中其他场景则使用默认场景
         if (current_scenario_->scenario_type() != default_scenario_type_) {
                 AINFO << "select default scenario: " << ScenarioConfig::ScenarioType_Name(default_scenario_type_);
                 current_scenario_ = CreateScenario(default_scenario_type_);

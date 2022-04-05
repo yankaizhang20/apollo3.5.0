@@ -46,8 +46,11 @@ Status PublicRoadPlanner::Init(const PlanningConfig& config) {
 Status PublicRoadPlanner::Plan(const TrajectoryPoint& planning_start_point, Frame* frame) {
         DCHECK_NOTNULL(frame);
         //更新场景，最后都是默认场景-跟车？
+        //@zyk:确定当前场景
         scenario_manager_.Update(planning_start_point, *frame);
+        //@zyk:获取当前场景
         scenario_ = scenario_manager_.mutable_scenario();
+        //@zyk:对场景进行处理
         auto result = scenario_->Process(planning_start_point, frame);
 
         if (FLAGS_enable_record_debug) {
@@ -65,6 +68,7 @@ Status PublicRoadPlanner::Plan(const TrajectoryPoint& planning_start_point, Fram
         if (result == scenario::Scenario::STATUS_DONE) {
                 // only updates scenario manager when previous scenario's status is
                 // STATUS_DONE
+                //@zyk:若处理成功，则再次更新场景
                 scenario_manager_.Update(planning_start_point, *frame);
         } else if (result == scenario::Scenario::STATUS_UNKNOWN) {
                 return Status(common::PLANNING_ERROR, "scenario returned unknown");
