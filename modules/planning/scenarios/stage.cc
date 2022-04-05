@@ -64,6 +64,7 @@ Task* Stage::FindTask(TaskConfig::TaskType task_type) const {
         }
 }
 
+//@zyk:每个阶段的主要处理逻辑
 bool Stage::ExecuteTaskOnReferenceLine(const common::TrajectoryPoint& planning_start_point, Frame* frame) {
         for (auto& reference_line_info : *frame->mutable_reference_line_info()) {
                 if (!reference_line_info.IsDrivable()) {
@@ -72,6 +73,7 @@ bool Stage::ExecuteTaskOnReferenceLine(const common::TrajectoryPoint& planning_s
                 }
 
                 auto ret = common::Status::OK();
+                //@zyk:执行该阶段的每个任务
                 for (auto* task : task_list_) {
                         ret = task->Execute(frame, &reference_line_info);
                         if (!ret.ok()) {
@@ -90,6 +92,7 @@ bool Stage::ExecuteTaskOnReferenceLine(const common::TrajectoryPoint& planning_s
                         reference_line_info.set_trajectory_type(ADCTrajectory::NORMAL);
                 }
                 DiscretizedTrajectory trajectory;
+                //@zyk:生成轨迹信息，对路径进行速度配比
                 if (!reference_line_info.CombinePathAndSpeedProfile(
                             planning_start_point.relative_time(), planning_start_point.path_point().s(), &trajectory)) {
                         AERROR << "Fail to aggregate planning trajectory.";

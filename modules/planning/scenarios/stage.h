@@ -55,6 +55,7 @@ class Stage {
          * If the stage want to transite to a different stage after finish,
          * it should set the type of 'next_stage_'.
          */
+        //@zyk:每个阶段的业务逻辑在Process中完成，主要是使用ExecuteTaskOnReferenceLine()
         virtual StageStatus Process(const common::TrajectoryPoint& planning_init_point, Frame* frame) = 0;
 
         /**

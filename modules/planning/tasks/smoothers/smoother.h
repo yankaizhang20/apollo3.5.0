@@ -29,19 +29,16 @@ namespace apollo {
 namespace planning {
 
 class Smoother {
- public:
-  Smoother() = default;
-  virtual ~Smoother() = default;
+    public:
+        Smoother() = default;
+        virtual ~Smoother() = default;
 
-  apollo::common::Status Smooth(
-      const FrameHistory* frame_history,
-      const Frame* current_frame,
-      ADCTrajectory* const current_trajectory_pb);
+        apollo::common::Status Smooth(const FrameHistory* frame_history, const Frame* current_frame,
+                                      ADCTrajectory* const current_trajectory_pb);
 
- private:
-  bool IsCloseStop(const common::VehicleState& vehicle_state,
-                   const MainStop& main_stop);
+    private:
+        bool IsCloseStop(const common::VehicleState& vehicle_state, const MainStop& main_stop);
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

@@ -27,17 +27,15 @@ namespace planning {
 
 using apollo::common::Status;
 
-Task::Task(const TaskConfig& config) : config_(config) {
-  name_ = TaskConfig::TaskType_Name(config_.task_type());
-}
+Task::Task(const TaskConfig& config) : config_(config) { name_ = TaskConfig::TaskType_Name(config_.task_type()); }
 
 const std::string& Task::Name() const { return name_; }
 
 Status Task::Execute(Frame* frame, ReferenceLineInfo* reference_line_info) {
-  frame_ = frame;
-  reference_line_info_ = reference_line_info;
-  return Status::OK();
+        frame_ = frame;
+        reference_line_info_ = reference_line_info;
+        return Status::OK();
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
