@@ -28,21 +28,19 @@ namespace apollo {
 namespace planning {
 
 class SpeedData : public std::vector<common::SpeedPoint> {
- public:
-  SpeedData() = default;
+    public:
+        SpeedData() = default;
 
-  explicit SpeedData(std::vector<common::SpeedPoint> speed_points);
+        explicit SpeedData(std::vector<common::SpeedPoint> speed_points);
 
-  void AppendSpeedPoint(const double s, const double time, const double v,
-                        const double a, const double da);
+        void AppendSpeedPoint(const double s, const double time, const double v, const double a, const double da);
 
-  bool EvaluateByTime(const double time,
-                      common::SpeedPoint* const speed_point) const;
+        bool EvaluateByTime(const double time, common::SpeedPoint* const speed_point) const;
 
-  double TotalTime() const;
+        double TotalTime() const;
 
-  virtual std::string DebugString() const;
+        virtual std::string DebugString() const;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

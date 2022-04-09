@@ -31,34 +31,27 @@ namespace planning {
 using apollo::common::ErrorCode;
 using apollo::common::Status;
 
-DpPolyPathOptimizer::DpPolyPathOptimizer(const TaskConfig &config)
-    : PathOptimizer(config) {
-  CHECK(config_.has_dp_poly_path_config());
-  SetName("DpPolyPathOptimizer");
+DpPolyPathOptimizer::DpPolyPathOptimizer(const TaskConfig &config) : PathOptimizer(config) {
+        CHECK(config_.has_dp_poly_path_config());
+        SetName("DpPolyPathOptimizer");
 }
 
-Status DpPolyPathOptimizer::Process(const SpeedData &speed_data,
-                                    const ReferenceLine &,
-                                    const common::TrajectoryPoint &init_point,
-                                    PathData *const path_data) {
-  CHECK_NOTNULL(path_data);
-  const auto &dp_poly_path_config = config_.dp_poly_path_config();
-  DpRoadGraph dp_road_graph(dp_poly_path_config, *reference_line_info_,
-                            speed_data);
-  dp_road_graph.SetDebugLogger(reference_line_info_->mutable_debug());
-  dp_road_graph.SetWaypointSampler(
-      new WaypointSampler(dp_poly_path_config.waypoint_sampler_config()));
+Status DpPolyPathOptimizer::Process(const SpeedData &speed_data, const ReferenceLine &,
+                                    const common::TrajectoryPoint &init_point, PathData *const path_data) {
+        CHECK_NOTNULL(path_data);
+        const auto &dp_poly_path_config = config_.dp_poly_path_config();
+        DpRoadGraph dp_road_graph(dp_poly_path_config, *reference_line_info_, speed_data);
+        dp_road_graph.SetDebugLogger(reference_line_info_->mutable_debug());
+        dp_road_graph.SetWaypointSampler(new WaypointSampler(dp_poly_path_config.waypoint_sampler_config()));
 
-  if (!dp_road_graph.FindPathTunnel(
-          init_point,
-          reference_line_info_->path_decision()->obstacles().Items(),
-          path_data)) {
-    AERROR << "Failed to find tunnel in road graph";
-    return Status(ErrorCode::PLANNING_ERROR, "dp_road_graph path generation");
-  }
+        if (!dp_road_graph.FindPathTunnel(init_point, reference_line_info_->path_decision()->obstacles().Items(),
+                                          path_data)) {
+                AERROR << "Failed to find tunnel in road graph";
+                return Status(ErrorCode::PLANNING_ERROR, "dp_road_graph path generation");
+        }
 
-  return Status::OK();
+        return Status::OK();
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

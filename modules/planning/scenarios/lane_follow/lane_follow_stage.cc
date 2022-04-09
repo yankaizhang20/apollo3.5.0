@@ -106,7 +106,7 @@ void LaneFollowStage::RecordDebugInfo(ReferenceLineInfo* reference_line_info, co
         ptr_stats->set_time_ms(time_diff_ms);
 }
 
-//TODO:
+//这里有对换道优先级的设置，决定在实车中是否优先考虑换道
 Stage::StageStatus LaneFollowStage::Process(const TrajectoryPoint& planning_start_point, Frame* frame) {
         bool has_drivable_reference_line = false;
         bool disable_low_priority_path = false;
@@ -120,10 +120,10 @@ Stage::StageStatus LaneFollowStage::Process(const TrajectoryPoint& planning_star
                 auto cur_status = PlanOnReferenceLine(planning_start_point, frame, &reference_line_info);
                 if (cur_status.ok() && reference_line_info.IsDrivable()) {
                         has_drivable_reference_line = true;
-                        //FLAGS_prioritize_change_lane==false
+                        // FLAGS_prioritize_change_lane==false 换道是否有更高的优先级
                         if (FLAGS_prioritize_change_lane && reference_line_info.IsChangeLanePath() &&
                             reference_line_info.Cost() < kStraightForwardLineCost) {
-                                disable_low_priority_path = true;
+                                disable_low_priority_path = true; //碰见换道线路，后面的直接跳过，使用这个换道线路
                         }
                 } else {
                         reference_line_info.SetDrivable(false);
@@ -139,6 +139,7 @@ Status LaneFollowStage::PlanOnReferenceLine(const TrajectoryPoint& planning_star
         }
         ADEBUG << "planning start point:" << planning_start_point.DebugString();
         auto* heuristic_speed_data = reference_line_info->mutable_speed_data();
+        //初始化速度配比
         auto speed_profile = SpeedProfileGenerator::GenerateInitSpeedProfile(planning_start_point, reference_line_info);
         if (speed_profile.empty()) {
                 speed_profile = SpeedProfileGenerator::GenerateSpeedHotStart(planning_start_point);
@@ -146,8 +147,16 @@ Status LaneFollowStage::PlanOnReferenceLine(const TrajectoryPoint& planning_star
         }
         *heuristic_speed_data = SpeedData(speed_profile);
 
+        //task处理
         auto ret = Status::OK();
-
+        /*task_type: DECIDER_RULE_BASED_STOP
+        task_type: DP_POLY_PATH_OPTIMIZER
+        task_type: QP_PIECEWISE_JERK_PATH_OPTIMIZER
+        task_type: PATH_DECIDER
+        task_type: DP_ST_SPEED_OPTIMIZER
+        task_type: SPEED_DECIDER
+        task_type: QP_SPLINE_ST_SPEED_OPTIMIZER
+        task_type: DECIDER_RSS*/
         for (auto* optimizer : task_list_) {
                 const double start_timestamp = Clock::NowInSeconds();
                 ret = optimizer->Execute(frame, reference_line_info);
