@@ -29,30 +29,24 @@ using apollo::common::Status;
 
 PathOptimizer::PathOptimizer(const TaskConfig& config) : Task(config) {}
 
-apollo::common::Status PathOptimizer::Execute(
-    Frame* frame, ReferenceLineInfo* const reference_line_info) {
-  Task::Execute(frame, reference_line_info);
-  auto ret = Process(
-      reference_line_info->speed_data(), reference_line_info->reference_line(),
-      frame->PlanningStartPoint(), reference_line_info->mutable_path_data());
-  RecordDebugInfo(reference_line_info->path_data());
-  if (ret != Status::OK()) {
-    reference_line_info->SetDrivable(false);
-    AERROR << "Reference Line " << reference_line_info->Lanes().Id()
-           << " is not drivable after " << Name();
-  }
-  return ret;
+apollo::common::Status PathOptimizer::Execute(Frame* frame, ReferenceLineInfo* const reference_line_info) {
+        Task::Execute(frame, reference_line_info);
+        auto ret = Process(reference_line_info->speed_data(), reference_line_info->reference_line(),
+                           frame->PlanningStartPoint(), reference_line_info->mutable_path_data());
+        RecordDebugInfo(reference_line_info->path_data());
+        if (ret != Status::OK()) {
+                reference_line_info->SetDrivable(false);
+                AERROR << "Reference Line " << reference_line_info->Lanes().Id() << " is not drivable after " << Name();
+        }
+        return ret;
 }
 
 void PathOptimizer::RecordDebugInfo(const PathData& path_data) {
-  const auto& path_points = path_data.discretized_path();
-  auto* ptr_optimized_path = reference_line_info_->mutable_debug()
-                                 ->mutable_planning_data()
-                                 ->add_path();
-  ptr_optimized_path->set_name(Name());
-  ptr_optimized_path->mutable_path_point()->CopyFrom(
-      {path_points.begin(), path_points.end()});
+        const auto& path_points = path_data.discretized_path();
+        auto* ptr_optimized_path = reference_line_info_->mutable_debug()->mutable_planning_data()->add_path();
+        ptr_optimized_path->set_name(Name());
+        ptr_optimized_path->mutable_path_point()->CopyFrom({path_points.begin(), path_points.end()});
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

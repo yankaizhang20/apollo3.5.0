@@ -33,15 +33,13 @@ namespace planning {
  * algorithm.
  */
 class DpPolyPathOptimizer : public PathOptimizer {
- public:
-  explicit DpPolyPathOptimizer(const TaskConfig &config);
+    public:
+        explicit DpPolyPathOptimizer(const TaskConfig &config);
 
- private:
-  apollo::common::Status Process(const SpeedData &speed_data,
-                                 const ReferenceLine &reference_line,
-                                 const common::TrajectoryPoint &init_point,
-                                 PathData *const path_data) override;
+    private:
+        apollo::common::Status Process(const SpeedData &speed_data, const ReferenceLine &reference_line,
+                                       const common::TrajectoryPoint &init_point, PathData *const path_data) override;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
