@@ -55,10 +55,12 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                                               reference_line_info_->reference_line().Length());
         const auto &vehicle_config = common::VehicleConfigHelper::Instance()->GetConfig();
         const double half_adc_width = vehicle_config.vehicle_param().width() / 2.0;
+        // use_navigation_mode==false，sample_points_num_each_level==7,每层的采样数量为7
         const double num_sample_per_level = FLAGS_use_navigation_mode ? config_.navigator_sample_num_each_level()
                                                                       : config_.sample_points_num_each_level();
 
         constexpr double kSamplePointLookForwardTime = 4.0;
+        // 12m<level_distance<40m
         const double level_distance = common::math::Clamp(init_point.v() * kSamplePointLookForwardTime,
                                                           config_.step_length_min(), config_.step_length_max());
 
@@ -66,6 +68,7 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
         double prev_s = accumulated_s;
 
         auto *status = PlanningContext::MutablePlanningStatus();
+        // 正在停车情况
         if (!status->has_pull_over() && status->pull_over().in_pull_over()) {
                 status->mutable_pull_over()->set_status(PullOverStatus::IN_OPERATION);
                 const auto &start_point = status->pull_over().start_point();
@@ -74,7 +77,7 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                         AERROR << "Fail to change xy to sl.";
                         return false;
                 }
-
+                //规划开始点在pull_over停车点之后，直接将pull_over停车点作为下一层,也是最后一层
                 if (init_sl_point_.s() > start_point_sl.s()) {
                         const auto &stop_point = status->pull_over().stop_point();
                         SLPoint stop_point_sl;
@@ -87,11 +90,11 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                         return true;
                 }
         }
-
+        //最多只有三层
         constexpr size_t kNumLevel = 3;
         for (size_t i = 0; i < kNumLevel && accumulated_s < total_length; ++i) {
                 accumulated_s += level_distance;
-                if (accumulated_s + level_distance / 2.0 > total_length) {
+                if (accumulated_s + level_distance / 2.0 > total_length) {//这个有什么用嘛？超过total_length都被截断
                         accumulated_s = total_length;
                 }
                 const double s = std::fmin(accumulated_s, total_length);
@@ -100,7 +103,7 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                         continue;
                 }
                 prev_s = s;
-
+                //L方向可采样范围
                 double left_width = 0.0;
                 double right_width = 0.0;
                 reference_line_info_->reference_line().GetLaneWidth(s, &left_width, &right_width);
@@ -110,6 +113,7 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                 const double eff_left_width = left_width - half_adc_width - kBoundaryBuff;
 
                 // the heuristic shift of L for lane change scenarios
+                //换道情况特殊处理
                 const double delta_dl = 1.2 / 20.0;
                 const double kChangeLaneDeltaL = common::math::Clamp(
                         level_distance * (std::fabs(init_frenet_frame_point_.dl()) + delta_dl), 1.2, 3.5);
