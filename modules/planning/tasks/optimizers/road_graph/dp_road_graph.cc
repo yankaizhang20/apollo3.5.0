@@ -190,6 +190,7 @@ bool DpRoadGraph::GenerateMinCostPath(const std::vector<const Obstacle *> &obsta
         return true;
 }
 
+//计算当前节点到前一层每个节点的cost，然后找到本节点到前一层的最小cost，及前一层对应的mincost节点
 void DpRoadGraph::UpdateNode(const std::shared_ptr<RoadGraphMessage> &msg) {
         DCHECK_NOTNULL(msg);
         DCHECK_NOTNULL(msg->trajectory_cost);
@@ -210,6 +211,7 @@ void DpRoadGraph::UpdateNode(const std::shared_ptr<RoadGraphMessage> &msg) {
                 if (!IsValidCurve(curve)) {
                         continue;
                 }
+                //TODO:计算开销
                 const auto cost = msg->trajectory_cost->Calculate(curve, prev_sl_point.s(), cur_point.s(), msg->level,
                                                                   msg->total_level) +
                                   prev_dp_node.min_cost;

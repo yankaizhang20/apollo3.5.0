@@ -103,7 +103,7 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                         continue;
                 }
                 prev_s = s;
-                //L方向可采样范围
+                // A L方向可采样范围
                 double left_width = 0.0;
                 double right_width = 0.0;
                 reference_line_info_->reference_line().GetLaneWidth(s, &left_width, &right_width);
@@ -127,7 +127,8 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                 double sample_left_boundary = eff_left_width;
 
                 constexpr double kLargeDeviationL = 1.75;
-                constexpr double kTwentyMilesPerHour = 8.94;
+                constexpr double kTwentyMilesPerHour = 8.94;   //32.94km/h=8.94m/s
+                //换道且偏离车道，要对采样区间进行相应偏移
                 if (reference_line_info_->IsChangeLanePath() || std::fabs(init_sl_point_.l()) > kLargeDeviationL) {
                         if (EgoInfo::Instance()->start_point().v() > kTwentyMilesPerHour) {
                                 sample_right_boundary = std::fmin(-eff_right_width, init_sl_point_.l());
@@ -144,13 +145,15 @@ bool WaypointSampler::SamplePathWaypoints(const common::TrajectoryPoint &init_po
                         }
                 }
 
+                // B L方向采样
                 std::vector<double> sample_l;
                 if (reference_line_info_->IsChangeLanePath() && !reference_line_info_->IsSafeToChangeLane()) {
-                        sample_l.push_back(reference_line_info_->OffsetToOtherReferenceLine());
+                        sample_l.push_back(reference_line_info_->OffsetToOtherReferenceLine());//若变道且不安全，将本层的采样点直接设置为另一条参考线处
                 } else {
                         common::util::uniform_slice(sample_right_boundary, sample_left_boundary,
                                                     static_cast<uint32_t>(num_sample_per_level - 1), &sample_l);
                 }
+                //debug
                 std::vector<common::SLPoint> level_points;
                 planning_internal::SampleLayerDebug sample_layer_debug;
                 for (size_t j = 0; j < sample_l.size(); ++j) {
