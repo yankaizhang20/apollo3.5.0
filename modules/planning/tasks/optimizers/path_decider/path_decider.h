@@ -26,24 +26,20 @@ namespace apollo {
 namespace planning {
 
 class PathDecider : public Task {
- public:
-  explicit PathDecider(const TaskConfig &config);
+    public:
+        explicit PathDecider(const TaskConfig &config);
 
-  apollo::common::Status Execute(
-      Frame *frame, ReferenceLineInfo *reference_line_info) override;
+        apollo::common::Status Execute(Frame *frame, ReferenceLineInfo *reference_line_info) override;
 
- private:
-  apollo::common::Status Process(const PathData &path_data,
-                                 PathDecision *const path_decision);
+    private:
+        apollo::common::Status Process(const PathData &path_data, PathDecision *const path_decision);
 
-  bool MakeObjectDecision(const PathData &path_data,
-                          PathDecision *const path_decision);
+        bool MakeObjectDecision(const PathData &path_data, PathDecision *const path_decision);
 
-  bool MakeStaticObstacleDecision(const PathData &path_data,
-                                  PathDecision *const path_decision);
+        bool MakeStaticObstacleDecision(const PathData &path_data, PathDecision *const path_decision);
 
-  ObjectStop GenerateObjectStopDecision(const Obstacle &obstacle) const;
+        ObjectStop GenerateObjectStopDecision(const Obstacle &obstacle) const;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
