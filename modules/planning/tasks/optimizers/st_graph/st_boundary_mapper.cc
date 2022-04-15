@@ -65,6 +65,7 @@ StBoundaryMapper::StBoundaryMapper(const SLBoundary& adc_sl_boundary, const StBo
     , planning_time_(planning_time)
     , is_change_lane_(is_change_lane) {}
 
+//根据每个obstacle的标签不同，主要在三个函数中创建StBoundary：MapWith/WithoutDecision MapStopDecision
 Status StBoundaryMapper::CreateStBoundary(PathDecision* path_decision) const {
         const auto& obstacles = path_decision->obstacles();
 
@@ -303,6 +304,7 @@ Status StBoundaryMapper::MapWithoutDecision(Obstacle* obstacle) const {
         return Status::OK();
 }
 
+//找到障碍物与规划路线上车辆相碰撞的时间和s区域
 bool StBoundaryMapper::GetOverlapBoundaryPoints(const std::vector<PathPoint>& path_points, const Obstacle& obstacle,
                                                 std::vector<STPoint>* upper_points,
                                                 std::vector<STPoint>* lower_points) const {
@@ -318,11 +320,13 @@ bool StBoundaryMapper::GetOverlapBoundaryPoints(const std::vector<PathPoint>& pa
         }
 
         const auto& trajectory = obstacle.Trajectory();
+        //障碍物没有预测轨迹
         if (trajectory.trajectory_point_size() == 0) {
                 if (!obstacle.IsStatic()) {
                         ADEBUG << "Non-static obstacle[" << obstacle.Id() << "] has NO prediction trajectory."
                                << obstacle.Perception().ShortDebugString();
                 }
+                //找到与规划路径上车辆第一个可能发生碰撞的障碍物，计算相关s区域
                 for (const auto& curr_point_on_path : path_points) {
                         if (curr_point_on_path.s() > planning_distance_) {
                                 break;
@@ -343,7 +347,8 @@ bool StBoundaryMapper::GetOverlapBoundaryPoints(const std::vector<PathPoint>& pa
                                 break;
                         }
                 }
-        } else {
+        } else {//寻找障碍物轨迹第一次与规划路径上的车辆碰撞的时间和s范围
+                //将路点数量缩小50倍
                 const int default_num_point = 50;
                 DiscretizedPath discretized_path;
                 if (path_points.size() > 2 * default_num_point) {
@@ -387,7 +392,7 @@ bool StBoundaryMapper::GetOverlapBoundaryPoints(const std::vector<PathPoint>& pa
                                         bool find_high = false;
                                         double low_s = std::fmax(0.0, path_s + backward_distance);
                                         double high_s = std::fmin(discretized_path.Length(), path_s + forward_distance);
-
+                                        //缩小los_s和high_s范围
                                         while (low_s < high_s) {
                                                 if (find_low && find_high) {
                                                         break;
@@ -443,6 +448,7 @@ Status StBoundaryMapper::MapWithDecision(Obstacle* obstacle, const ObjectDecisio
         }
 
         if (decision.has_follow() && lower_points.back().t() < planning_time_) {
+                //增加一个在planning_time_处预测的重叠区域
                 const double diff_s = lower_points.back().s() - lower_points.front().s();
                 const double diff_t = lower_points.back().t() - lower_points.front().t();
                 double extend_lower_s =
@@ -452,7 +458,7 @@ Status StBoundaryMapper::MapWithDecision(Obstacle* obstacle, const ObjectDecisio
                 upper_points.emplace_back(extend_upper_s, planning_time_);
                 lower_points.emplace_back(extend_lower_s, planning_time_);
         }
-
+        //将lower_points和upper_points连成多边形(st坐标轴中)
         auto boundary = StBoundary::GenerateStBoundary(lower_points, upper_points)
                                 .ExpandByS(boundary_s_buffer)
                                 .ExpandByT(boundary_t_buffer);

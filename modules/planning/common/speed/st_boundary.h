@@ -35,6 +35,7 @@
 namespace apollo {
 namespace planning {
 
+//stboundary是多变形,polygon
 class StBoundary : public common::math::Polygon2d {
     public:
         StBoundary() = default;
