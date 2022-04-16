@@ -24,44 +24,39 @@
 #include <vector>
 
 #include "modules/common/configs/proto/vehicle_config.pb.h"
-#include "modules/planning/proto/st_boundary_config.pb.h"
-
 #include "modules/common/status/status.h"
 #include "modules/planning/common/obstacle.h"
 #include "modules/planning/common/path/path_data.h"
 #include "modules/planning/common/speed_limit.h"
+#include "modules/planning/proto/st_boundary_config.pb.h"
 #include "modules/planning/reference_line/reference_line.h"
 
 namespace apollo {
 namespace planning {
 
 class SpeedLimitDecider {
- public:
-  SpeedLimitDecider(const SLBoundary& adc_sl_boundary,
-                    const StBoundaryConfig& config,
-                    const ReferenceLine& reference_line,
-                    const PathData& path_data);
+    public:
+        SpeedLimitDecider(const SLBoundary& adc_sl_boundary, const StBoundaryConfig& config,
+                          const ReferenceLine& reference_line, const PathData& path_data);
 
-  virtual ~SpeedLimitDecider() = default;
+        virtual ~SpeedLimitDecider() = default;
 
-  virtual apollo::common::Status GetSpeedLimits(
-      const IndexedList<std::string, Obstacle>& obstacles,
-      SpeedLimit* const speed_limit_data) const;
+        virtual apollo::common::Status GetSpeedLimits(const IndexedList<std::string, Obstacle>& obstacles,
+                                                      SpeedLimit* const speed_limit_data) const;
 
- private:
-  FRIEND_TEST(SpeedLimitDeciderTest, get_centric_acc_limit);
-  double GetCentricAccLimit(const double kappa) const;
+    private:
+        FRIEND_TEST(SpeedLimitDeciderTest, get_centric_acc_limit);
+        double GetCentricAccLimit(const double kappa) const;
 
-  void GetAvgKappa(const std::vector<common::PathPoint>& path_points,
-                   std::vector<double>* kappa) const;
+        void GetAvgKappa(const std::vector<common::PathPoint>& path_points, std::vector<double>* kappa) const;
 
- private:
-  const SLBoundary& adc_sl_boundary_;
-  const StBoundaryConfig& st_boundary_config_;
-  const ReferenceLine& reference_line_;
-  const PathData& path_data_;
-  const apollo::common::VehicleParam& vehicle_param_;
+    private:
+        const SLBoundary& adc_sl_boundary_;
+        const StBoundaryConfig& st_boundary_config_;
+        const ReferenceLine& reference_line_;
+        const PathData& path_data_;
+        const apollo::common::VehicleParam& vehicle_param_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

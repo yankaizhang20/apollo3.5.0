@@ -48,6 +48,7 @@ bool DpStSpeedOptimizer::SearchStGraph(const StBoundaryMapper& boundary_mapper,
                                        const SpeedLimitDecider& speed_limit_decider, const PathData& path_data,
                                        SpeedData* speed_data, PathDecision* path_decision,
                                        STGraphDebug* st_graph_debug) const {
+        // A 罗列所有stboundary,判断是否是实体障碍
         std::vector<const StBoundary*> boundaries;
         for (auto* obstacle : path_decision->obstacles().Items()) {
                 auto id = obstacle->Id();
@@ -62,6 +63,7 @@ bool DpStSpeedOptimizer::SearchStGraph(const StBoundaryMapper& boundary_mapper,
         }
 
         // step 2 perform graph search
+        // B 求每个点处的速度限制
         SpeedLimit speed_limit;
         if (!speed_limit_decider.GetSpeedLimits(path_decision->obstacles(), &speed_limit).ok()) {
                 AERROR << "Getting speed limits for dp st speed optimizer failed!";

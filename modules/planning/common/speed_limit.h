@@ -27,25 +27,25 @@ namespace apollo {
 namespace planning {
 
 class SpeedLimit {
- public:
-  SpeedLimit() = default;
+    public:
+        SpeedLimit() = default;
 
-  void AppendSpeedLimit(const double s, const double v);
+        void AppendSpeedLimit(const double s, const double v);
 
-  const std::vector<std::pair<double, double>>& speed_limit_points() const;
+        const std::vector<std::pair<double, double>>& speed_limit_points() const;
 
-  double GetSpeedLimitByS(const double s) const;
+        double GetSpeedLimitByS(const double s) const;
 
-  double MinValidS() const;
+        double MinValidS() const;
 
-  void Clear();
+        void Clear();
 
- private:
-  // use a vector to represent speed limit
-  // the first number is s, the second number is v
-  // It means at distance s from the start point, the speed limit is v.
-  std::vector<std::pair<double, double>> speed_limit_points_;
+    private:
+        // use a vector to represent speed limit
+        // the first number is s, the second number is v
+        // It means at distance s from the start point, the speed limit is v.
+        std::vector<std::pair<double, double>> speed_limit_points_;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

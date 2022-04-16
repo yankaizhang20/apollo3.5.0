@@ -24,7 +24,6 @@
 #include <vector>
 
 #include "modules/common/proto/pnc_point.pb.h"
-
 #include "modules/planning/common/speed/st_boundary.h"
 #include "modules/planning/common/speed_limit.h"
 
@@ -32,27 +31,27 @@ namespace apollo {
 namespace planning {
 
 class StGraphData {
- public:
-  StGraphData(const std::vector<const StBoundary*>& st_boundaries,
-              const apollo::common::TrajectoryPoint& init_point,
-              const SpeedLimit& speed_limit, const double path_data_length);
-  StGraphData() = default;
+    public:
+        StGraphData(const std::vector<const StBoundary*>& st_boundaries,
+                    const apollo::common::TrajectoryPoint& init_point, const SpeedLimit& speed_limit,
+                    const double path_data_length);
+        StGraphData() = default;
 
-  const std::vector<const StBoundary*>& st_boundaries() const;
+        const std::vector<const StBoundary*>& st_boundaries() const;
 
-  const apollo::common::TrajectoryPoint& init_point() const;
+        const apollo::common::TrajectoryPoint& init_point() const;
 
-  const SpeedLimit& speed_limit() const;
+        const SpeedLimit& speed_limit() const;
 
-  double path_data_length() const;
+        double path_data_length() const;
 
- private:
-  std::vector<const StBoundary*> st_boundaries_;
-  apollo::common::TrajectoryPoint init_point_;
+    private:
+        std::vector<const StBoundary*> st_boundaries_;
+        apollo::common::TrajectoryPoint init_point_;
 
-  SpeedLimit speed_limit_;
-  double path_data_length_ = 0.0;
+        SpeedLimit speed_limit_;
+        double path_data_length_ = 0.0;
 };
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo
