@@ -236,26 +236,27 @@ void DpStGraph::CalculateCostAt(const std::shared_ptr<StGraphMessage>& msg) {
         const uint32_t c = msg->c;
         const uint32_t r = msg->r;
         auto& cost_cr = cost_table_[c][r];
-        //TODO:dp_st_cost是dp_st_graph的成员，看看初始化过程
+        // A st点处发生碰撞可能性的代价
         cost_cr.SetObstacleCost(dp_st_cost_.GetObstacleCost(cost_cr));
-        if (cost_cr.obstacle_cost() > std::numeric_limits<double>::max()) {
+        if (cost_cr.obstacle_cost() > std::numeric_limits<double>::max()) {//发生碰撞
                 return;
         }
 
         const auto& cost_init = cost_table_[0][0];
-        if (c == 0) {
+        if (c == 0) {// 第零层（第0秒） cost==0
                 DCHECK_EQ(r, 0) << "Incorrect. Row should be 0 with col = 0. row: " << r;
                 cost_cr.SetTotalCost(0.0);
                 return;
         }
 
         double speed_limit = st_graph_data_.speed_limit().GetSpeedLimitByS(unit_s_ * r);
-        if (c == 1) {
+        if (c == 1) {//第一层 （第1个时间单位）
                 const double acc = (r * unit_s_ / unit_t_ - init_point_.v()) / unit_t_;
                 if (acc < dp_st_speed_config_.max_deceleration() || acc > dp_st_speed_config_.max_acceleration()) {
                         return;
                 }
 
+                //和初始点连线与st_boundary相交
                 if (CheckOverlapOnDpStGraph(st_graph_data_.st_boundaries(), cost_cr, cost_init)) {
                         return;
                 }
@@ -266,20 +267,21 @@ void DpStGraph::CalculateCostAt(const std::shared_ptr<StGraphMessage>& msg) {
         }
 
         constexpr double kSpeedRangeBuffer = 0.20;
+        // planning_upper_speed_limit==31.3
         const uint32_t max_s_diff =
                 static_cast<uint32_t>(FLAGS_planning_upper_speed_limit * (1 + kSpeedRangeBuffer) * unit_t_ / unit_s_);
         const uint32_t r_low = (max_s_diff < r ? r - max_s_diff : 0);
 
         const auto& pre_col = cost_table_[c - 1];
 
-        if (c == 2) {
+        if (c == 2) {//第二层 （第二个时间单位）
                 for (uint32_t r_pre = r_low; r_pre <= r; ++r_pre) {
                         const double acc = (r * unit_s_ - 2 * r_pre * unit_s_) / (unit_t_ * unit_t_);
                         if (acc < dp_st_speed_config_.max_deceleration() ||
                             acc > dp_st_speed_config_.max_acceleration()) {
                                 continue;
                         }
-
+                        //判断当st点和“由前一层可能到达当前点”的点的连线是否会落在st_boundaries内
                         if (CheckOverlapOnDpStGraph(st_graph_data_.st_boundaries(), cost_cr, pre_col[r_pre])) {
                                 continue;
                         }
@@ -335,13 +337,14 @@ void DpStGraph::CalculateCostAt(const std::shared_ptr<StGraphMessage>& msg) {
 Status DpStGraph::RetrieveSpeedProfile(SpeedData* const speed_data) {
         double min_cost = std::numeric_limits<double>::infinity();
         const StGraphPoint* best_end_point = nullptr;
+        // A 在到达规划时间的节点中寻找最小代价节点
         for (const StGraphPoint& cur_point : cost_table_.back()) {
                 if (!std::isinf(cur_point.total_cost()) && cur_point.total_cost() < min_cost) {
                         best_end_point = &cur_point;
                         min_cost = cur_point.total_cost();
                 }
         }
-
+        // B 在到达规划长度的节点中寻找最小代价
         for (const auto& row : cost_table_) {
                 const StGraphPoint& cur_point = row.back();
                 if (!std::isinf(cur_point.total_cost()) && cur_point.total_cost() < min_cost) {
@@ -358,6 +361,7 @@ Status DpStGraph::RetrieveSpeedProfile(SpeedData* const speed_data) {
 
         std::vector<SpeedPoint> speed_profile;
         const StGraphPoint* cur_point = best_end_point;
+        // C 向前寻找代价最小st路径
         while (cur_point != nullptr) {
                 SpeedPoint speed_point;
                 speed_point.set_s(cur_point->point().s());
@@ -374,6 +378,7 @@ Status DpStGraph::RetrieveSpeedProfile(SpeedData* const speed_data) {
                 return Status(ErrorCode::PLANNING_ERROR, msg);
         }
 
+        // D 求每个点的速度
         for (size_t i = 0; i + 1 < speed_profile.size(); ++i) {
                 const double v = (speed_profile[i + 1].s() - speed_profile[i].s()) /
                                  (speed_profile[i + 1].t() - speed_profile[i].t() + 1e-3);

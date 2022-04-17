@@ -45,7 +45,7 @@ DpStCost::DpStCost(const DpStSpeedConfig& config, const std::vector<const Obstac
 
         boundary_cost_.resize(obstacles_.size());
         for (auto& vec : boundary_cost_) {
-                vec.resize(config_.matrix_dimension_t(), std::make_pair(-1.0, -1.0));
+                vec.resize(config_.matrix_dimension_t(),  std::make_pair(-1.0, -1.0));
         }
         accel_cost_.fill(-1.0);
         jerk_cost_.fill(-1.0);
@@ -99,6 +99,7 @@ bool DpStCost::InKeepClearRange(double s) const {
         return false;
 }
 
+//获得st点处关于obstacle的cost,主要看st点到obs的boundary的距离关系
 double DpStCost::GetObstacleCost(const StGraphPoint& st_graph_point) {
         const double s = st_graph_point.point().s();
         const double t = st_graph_point.point().t();
@@ -117,6 +118,7 @@ double DpStCost::GetObstacleCost(const StGraphPoint& st_graph_point) {
                 if (t < boundary.min_t() || t > boundary.max_t()) {
                         continue;
                 }
+                //boundary内的st点的cost无穷大
                 if (obstacle->IsBlockingObstacle() && boundary.IsPointInBoundary(STPoint(s, t))) {
                         return kInf;
                 }
@@ -164,12 +166,12 @@ double DpStCost::GetSpeedCost(const STPoint& first, const STPoint& second, const
         if (speed < 0) {
                 return kInf;
         }
-
-        if (speed < FLAGS_max_stop_speed && InKeepClearRange(second.s())) {
+        //在禁停区停车cost
+        if (speed < FLAGS_max_stop_speed && InKeepClearRange(second.s())) { //max_stop_speed==0.2
                 // first.s in range
                 cost += config_.keep_clear_low_speed_penalty() * unit_t_ * config_.default_speed_cost();
         }
-
+        //超速和低速cost
         double det_speed = (speed - speed_limit) / speed_limit;
         if (det_speed > 0) {
                 cost += config_.exceed_speed_penalty() * config_.default_speed_cost() * fabs(speed * speed) * unit_t_;
