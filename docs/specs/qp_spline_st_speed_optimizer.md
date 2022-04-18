@@ -29,21 +29,25 @@ Split the S-T profile into **n** segments. Each segment trajectory is defined by
 
 Each segment ***i*** has an accumulated distance $d_i$ along a reference line. And the trajectory for the segment is defined as a polynomial of degree five by default. The degree of the polynomials are adjustable by configuration parameters.
 
-<p>
 $$
 s = f_i(t) 
   = a_{0i} + a_{1i} \cdot t + a_{2i} \cdot t^2 + a_{3i} \cdot t^3 + a_{4i} \cdot t^4 + a_{5i} \cdot t^5
 $$
-</p>
+
+$$
+s = f_i(t) 
+  = a_{0i} + a_{1i} \cdot t + a_{2i} \cdot t^2 + a_{3i} \cdot t^3 + a_{4i} \cdot t^4 + a_{5i} \cdot t^5
+$$
 
 ### 2.3  Define  objective function of optimization for each segment
 
 Apollo first defines $cost_1$ to make the trajectory smooth: 
-<p>
+
 $$
 cost_1 = \sum_{i=1}^{n} \Big( w_1 \cdot \int\limits_{0}^{d_i} (f_i')^2(s) ds + w_2 \cdot \int\limits_{0}^{d_i} (f_i'')^2(s) ds + w_3 \cdot \int\limits_{0}^{d_i} (f_i^{\prime\prime\prime})^2(s) ds \Big)
 $$
 </p>
+
 
 Then Apollo defines $cost_2$ as the difference between the final S-T trajectory and the cruise S-T trajectory (with given speed limits — m points):
 <p>

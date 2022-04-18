@@ -23,9 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include "modules/common/proto/pnc_point.pb.h"
-
 #include "modules/common/configs/vehicle_config_helper.h"
+#include "modules/common/proto/pnc_point.pb.h"
 #include "modules/common/util/file.h"
 #include "modules/common/vehicle_state/vehicle_state_provider.h"
 #include "modules/planning/common/planning_gflags.h"
@@ -41,121 +40,105 @@ using apollo::common::Status;
 using apollo::common::TrajectoryPoint;
 using apollo::planning_internal::STGraphDebug;
 
-QpSplineStSpeedOptimizer::QpSplineStSpeedOptimizer(const TaskConfig& config)
-    : SpeedOptimizer(config) {
-  SetName("QpSplineStSpeedOptimizer");
-  CHECK(config.has_qp_st_speed_config());
-  qp_st_speed_config_ = config.qp_st_speed_config();
-  st_boundary_config_ = qp_st_speed_config_.st_boundary_config();
-  std::vector<double> init_knots;
+QpSplineStSpeedOptimizer::QpSplineStSpeedOptimizer(const TaskConfig& config) : SpeedOptimizer(config) {
+        SetName("QpSplineStSpeedOptimizer");
+        CHECK(config.has_qp_st_speed_config());
+        qp_st_speed_config_ = config.qp_st_speed_config();
+        st_boundary_config_ = qp_st_speed_config_.st_boundary_config();
+        std::vector<double> init_knots;
 
-  if (FLAGS_use_osqp_optimizer_for_qp_st) {
-    spline_solver_.reset(new OsqpSpline1dSolver(init_knots, 5));
-  } else {
-    spline_solver_.reset(new ActiveSetSpline1dSolver(init_knots, 5));
-  }
+        if (FLAGS_use_osqp_optimizer_for_qp_st) { // use_osqp_optimizer_for_qp_st==false
+                spline_solver_.reset(new OsqpSpline1dSolver(init_knots, 5));
+        } else {
+                spline_solver_.reset(new ActiveSetSpline1dSolver(init_knots, 5)); // qpOASES
+        }
 }
 
-Status QpSplineStSpeedOptimizer::Process(const SLBoundary& adc_sl_boundary,
-                                         const PathData& path_data,
-                                         const TrajectoryPoint& init_point,
-                                         const ReferenceLine& reference_line,
-                                         const SpeedData& reference_speed_data,
-                                         PathDecision* const path_decision,
+Status QpSplineStSpeedOptimizer::Process(const SLBoundary& adc_sl_boundary, const PathData& path_data,
+                                         const TrajectoryPoint& init_point, const ReferenceLine& reference_line,
+                                         const SpeedData& reference_speed_data, PathDecision* const path_decision,
                                          SpeedData* const speed_data) {
-  if (reference_line_info_->ReachedDestination()) {
-    return Status::OK();
-  }
+        if (reference_line_info_->ReachedDestination()) {
+                return Status::OK();
+        }
 
-  if (path_data.discretized_path().empty()) {
-    std::string msg("Empty path data");
-    AERROR << msg;
-    return Status(ErrorCode::PLANNING_ERROR, msg);
-  }
+        if (path_data.discretized_path().empty()) {
+                std::string msg("Empty path data");
+                AERROR << msg;
+                return Status(ErrorCode::PLANNING_ERROR, msg);
+        }
 
-  StBoundaryMapper boundary_mapper(
-      adc_sl_boundary, st_boundary_config_, reference_line, path_data,
-      qp_st_speed_config_.total_path_length(), qp_st_speed_config_.total_time(),
-      reference_line_info_->IsChangeLanePath());
+        StBoundaryMapper boundary_mapper(adc_sl_boundary, st_boundary_config_, reference_line, path_data,
+                                         qp_st_speed_config_.total_path_length(), qp_st_speed_config_.total_time(),
+                                         reference_line_info_->IsChangeLanePath());
 
-  for (const auto* obstacle : path_decision->obstacles().Items()) {
-    DCHECK(obstacle->HasLongitudinalDecision());
-  }
-  // step 1 get boundaries
-  path_decision->EraseStBoundaries();
-  if (boundary_mapper.CreateStBoundary(path_decision).code() ==
-      ErrorCode::PLANNING_ERROR) {
-    return Status(ErrorCode::PLANNING_ERROR,
-                  "Mapping obstacle for qp st speed optimizer failed!");
-  }
+        for (const auto* obstacle : path_decision->obstacles().Items()) {
+                DCHECK(obstacle->HasLongitudinalDecision());
+        }
+        // step 1 get boundaries  和dp_st_speed 一样先求障碍物st包围框和速度限制
+        path_decision->EraseStBoundaries();
+        if (boundary_mapper.CreateStBoundary(path_decision).code() == ErrorCode::PLANNING_ERROR) {
+                return Status(ErrorCode::PLANNING_ERROR, "Mapping obstacle for qp st speed optimizer failed!");
+        }
 
-  std::vector<const StBoundary*> boundaries;
-  for (auto* obstacle : path_decision->obstacles().Items()) {
-    auto id = obstacle->Id();
-    if (!obstacle->st_boundary().IsEmpty()) {
-      path_decision->Find(id)->SetBlockingObstacle(true);
-      boundaries.push_back(&obstacle->st_boundary());
-    }
-  }
+        std::vector<const StBoundary*> boundaries;
+        for (auto* obstacle : path_decision->obstacles().Items()) {
+                auto id = obstacle->Id();
+                if (!obstacle->st_boundary().IsEmpty()) {
+                        path_decision->Find(id)->SetBlockingObstacle(true);
+                        boundaries.push_back(&obstacle->st_boundary());
+                }
+        }
 
-  SpeedLimitDecider speed_limit_decider(adc_sl_boundary, st_boundary_config_,
-                                        reference_line, path_data);
-  SpeedLimit speed_limits;
-  if (speed_limit_decider.GetSpeedLimits(path_decision->obstacles(),
-                                         &speed_limits) != Status::OK()) {
-    return Status(ErrorCode::PLANNING_ERROR,
-                  "GetSpeedLimits for qp st speed optimizer failed!");
-  }
+        SpeedLimitDecider speed_limit_decider(adc_sl_boundary, st_boundary_config_, reference_line, path_data);
+        SpeedLimit speed_limits;
+        if (speed_limit_decider.GetSpeedLimits(path_decision->obstacles(), &speed_limits) != Status::OK()) {
+                return Status(ErrorCode::PLANNING_ERROR, "GetSpeedLimits for qp st speed optimizer failed!");
+        }
 
-  // step 2 perform graph search
-  const auto& veh_param =
-      common::VehicleConfigHelper::GetConfig().vehicle_param();
-  QpSplineStGraph st_graph(spline_solver_.get(), qp_st_speed_config_, veh_param,
-                           reference_line_info_->IsChangeLanePath());
+        // step 2 perform graph search
+        const auto& veh_param = common::VehicleConfigHelper::GetConfig().vehicle_param();
+        QpSplineStGraph st_graph(spline_solver_.get(), qp_st_speed_config_, veh_param,
+                                 reference_line_info_->IsChangeLanePath());
 
-  StGraphData st_graph_data(boundaries, init_point, speed_limits,
-                            path_data.discretized_path().Length());
+        StGraphData st_graph_data(boundaries, init_point, speed_limits, path_data.discretized_path().Length());
 
-  STGraphDebug* st_graph_debug = reference_line_info_->mutable_debug()
-                                     ->mutable_planning_data()
-                                     ->add_st_graph();
+        STGraphDebug* st_graph_debug = reference_line_info_->mutable_debug()->mutable_planning_data()->add_st_graph();
 
-  std::pair<double, double> accel_bound = {
-      qp_st_speed_config_.preferred_min_deceleration(),
-      qp_st_speed_config_.preferred_max_acceleration()};
-  st_graph.SetDebugLogger(st_graph_debug);
-  auto ret = st_graph.Search(st_graph_data, accel_bound, reference_speed_data,
-                             speed_data);
-  if (ret != Status::OK()) {
-    AERROR << "Failed to solve with ideal acceleration conditions. Use "
-              "secondary choice instead.";
+        std::pair<double, double> accel_bound = {qp_st_speed_config_.preferred_min_deceleration(),
+                                                 qp_st_speed_config_.preferred_max_acceleration()}; //-3.3-2.5
+        st_graph.SetDebugLogger(st_graph_debug);
+        auto ret = st_graph.Search(st_graph_data, accel_bound, reference_speed_data, speed_data);
+        
+        if (ret != Status::OK()) {  //理想加速度没有解，使用次优加速度
+                AERROR << "Failed to solve with ideal acceleration conditions. Use "
+                          "secondary choice instead.";
 
-    accel_bound.first = qp_st_speed_config_.min_deceleration();
-    accel_bound.second = qp_st_speed_config_.max_acceleration();
-    ret = st_graph.Search(st_graph_data, accel_bound, reference_speed_data,
-                          speed_data);
+                accel_bound.first = qp_st_speed_config_.min_deceleration();
+                accel_bound.second = qp_st_speed_config_.max_acceleration();
+                ret = st_graph.Search(st_graph_data, accel_bound, reference_speed_data, speed_data);
 
-    // backup plan: use piecewise_st_graph
-    if (ret != Status::OK()) {
-      AERROR << "Spline QP speed solver Failed. "
-             << "Using finite difference method.";
-      QpPiecewiseStGraph piecewise_st_graph(qp_st_speed_config_);
-      ret = piecewise_st_graph.Search(st_graph_data, speed_data, accel_bound);
+                // backup plan: use piecewise_st_graph
+                if (ret != Status::OK()) { //使用有限差分法
+                        AERROR << "Spline QP speed solver Failed. "
+                               << "Using finite difference method.";
+                        QpPiecewiseStGraph piecewise_st_graph(qp_st_speed_config_);
+                        ret = piecewise_st_graph.Search(st_graph_data, speed_data, accel_bound);
 
-      if (ret != Status::OK()) {
-        std::string msg = common::util::StrCat(
-            Name(), ": Failed to search graph with quadratic programming!");
-        AERROR << msg;
+                        if (ret != Status::OK()) {
+                                std::string msg = common::util::StrCat(
+                                        Name(), ": Failed to search graph with quadratic programming!");
+                                AERROR << msg;
+                                RecordSTGraphDebug(st_graph_data, st_graph_debug);
+                                return Status(ErrorCode::PLANNING_ERROR, msg);
+                        }
+                }
+        }
+
+        // record debug info
         RecordSTGraphDebug(st_graph_data, st_graph_debug);
-        return Status(ErrorCode::PLANNING_ERROR, msg);
-      }
-    }
-  }
-
-  // record debug info
-  RecordSTGraphDebug(st_graph_data, st_graph_debug);
-  return Status::OK();
+        return Status::OK();
 }
 
-}  // namespace planning
-}  // namespace apollo
+} // namespace planning
+} // namespace apollo

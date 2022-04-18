@@ -8,7 +8,6 @@ _**Tip**: 为了更好的展示本文档中的等式，我们建议使用者使�
 
 Apollo使用多个样条来表示速度参数，在ST图上表示为一系列的ST点。Apollo会对二次规划的结果做再次的平衡以获得最佳的速度参数。QP问题的标准类型定义为：
 
-<p>
 $$
 minimize \frac{1}{2} \cdot x^T \cdot H \cdot x + f^T \cdot x 
 \\
@@ -18,7 +17,7 @@ A_{eq}x = b_{eq}
 \\
 Ax \leq b
 $$
-</p>
+
 
 ## 2  目标函数
 
@@ -30,38 +29,27 @@ $$
 
 每个样条段 ***i*** 都有沿着参考线的累加距离$d_i$。每段的路径默认用5介多项式表示。多项式介数可以通过配置参数进行调整。
 
-<p>
 $$
 s = f_i(t) 
   = a_{0i} + a_{1i} \cdot t + a_{2i} \cdot t^2 + a_{3i} \cdot t^3 + a_{4i} \cdot t^4 + a_{5i} \cdot t^5
 $$
-</p>
+
 
 ### 2.3  定义样条段优化函数
 
 Apollo首先定义$cost_1$以使路径更加平滑：
 
-<p>
 $$
 cost_1 = \sum_{i=1}^{n} \Big( w_1 \cdot \int\limits_{0}^{d_i} (f_i')^2(s) ds + w_2 \cdot \int\limits_{0}^{d_i} (f_i'')^2(s) ds + w_3 \cdot \int\limits_{0}^{d_i} (f_i^{\prime\prime\prime})^2(s) ds \Big)
 $$
-</p>
-
 然后，Apollo定义$cost_2$表示最后的S-T路径和S-T巡航路径（有速度限制且m个点）的差值：
-
-<p>
 $$
 cost_2 = \sum_{i=1}^{n}\sum_{j=1}^{m}\Big(f_i(t_j)- s_j\Big)^2
 $$
-</p>
-
 同样地，Apollo定义了$cost_3$表示第一个S-T路径和随后的S-T路径（o个点）的差值：
-
-<p>
 $$
 cost_3 = \sum_{i=1}^{n}\sum_{j=1}^{o}\Big(f_i(t_j)- s_j\Big)^2
 $$
-</p>
 
 最后得出的目标函数为：
 
