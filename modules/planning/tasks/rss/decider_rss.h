@@ -32,17 +32,14 @@ namespace apollo {
 namespace planning {
 
 class RssDecider : public Task {
- public:
-  explicit RssDecider(const TaskConfig &config);
+    public:
+        explicit RssDecider(const TaskConfig &config);
 
-  apollo::common::Status Execute(
-      Frame *frame, ReferenceLineInfo *reference_line_info) override;
+        apollo::common::Status Execute(Frame *frame, ReferenceLineInfo *reference_line_info) override;
 
- private:
-  apollo::common::Status Process(
-      Frame *frame, ReferenceLineInfo *reference_line_info);
+    private:
+        apollo::common::Status Process(Frame *frame, ReferenceLineInfo *reference_line_info);
 };
 
-}  // namespace planning
-}  // namespace apollo
-
+} // namespace planning
+} // namespace apollo
