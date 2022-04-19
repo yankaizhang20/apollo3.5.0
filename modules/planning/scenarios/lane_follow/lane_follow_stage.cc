@@ -177,14 +177,14 @@ Status LaneFollowStage::PlanOnReferenceLine(const TrajectoryPoint& planning_star
 
         RecordObstacleDebugInfo(reference_line_info);
 
-        if (reference_line_info->path_data().Empty()) {
+        if (reference_line_info->path_data().Empty()) {//走一个和车道平行的线路
                 ADEBUG << "Path fallback.";
                 GenerateFallbackPathProfile(reference_line_info, reference_line_info->mutable_path_data());
                 reference_line_info->AddCost(kPathOptimizationFallbackCost);
                 reference_line_info->set_trajectory_type(ADCTrajectory::PATH_FALLBACK);
         }
 
-        if (!ret.ok() || reference_line_info->speed_data().empty()) {
+        if (!ret.ok() || reference_line_info->speed_data().empty()) {//减速停车
                 ADEBUG << "Speed fallback.";
 
                 *reference_line_info->mutable_speed_data() = SpeedProfileGenerator::GenerateFallbackSpeedProfile();
@@ -197,6 +197,7 @@ Status LaneFollowStage::PlanOnReferenceLine(const TrajectoryPoint& planning_star
                 reference_line_info->set_trajectory_type(ADCTrajectory::NORMAL);
         }
         DiscretizedTrajectory trajectory;
+        //联合sl，st求轨迹
         if (!reference_line_info->CombinePathAndSpeedProfile(planning_start_point.relative_time(),
                                                              planning_start_point.path_point().s(), &trajectory)) {
                 std::string msg("Fail to aggregate planning trajectory.");
@@ -215,6 +216,7 @@ Status LaneFollowStage::PlanOnReferenceLine(const TrajectoryPoint& planning_star
                 }
         }
 
+        //轨迹如果中间遇到障碍物需要停车，则增加cost
         for (const auto* obstacle : reference_line_info->path_decision()->obstacles().Items()) {
                 if (obstacle->IsVirtual()) {
                         continue;

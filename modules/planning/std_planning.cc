@@ -342,6 +342,7 @@ void StdPlanning::RunOnce(const LocalView& local_view, ADCTrajectory* const traj
         ADEBUG << "Planning pb:" << trajectory_pb->header().DebugString();
 
         frame_->mutable_trajectory()->CopyFrom(*trajectory_pb);
+        //不同规划循环轨迹的光滑拼接
         if (FLAGS_enable_planning_smoother) {
                 planning_smoother_.Smooth(FrameHistory::Instance(), frame_.get(), trajectory_pb);
         }
@@ -376,6 +377,7 @@ Status StdPlanning::Plan(const double current_time_stamp, const std::vector<Traj
 
         ptr_debug->mutable_planning_data()->set_front_clear_distance(EgoInfo::Instance()->front_clear_distance());
 
+        // 寻找代价最小路径
         const auto* best_ref_info = frame_->FindDriveReferenceLineInfo();
         if (!best_ref_info) {
                 std::string msg("planner failed to make a driving plan");
@@ -393,6 +395,7 @@ Status StdPlanning::Plan(const double current_time_stamp, const std::vector<Traj
         }
         trajectory_pb->mutable_latency_stats()->MergeFrom(best_ref_info->latency_stats());
         // set right of way status
+        //设置一些关于轨迹的附加信息
         trajectory_pb->set_right_of_way_status(best_ref_info->GetRightOfWayStatus());
         for (const auto& id : best_ref_info->TargetLaneId()) {
                 trajectory_pb->add_lane_id()->CopyFrom(id);
